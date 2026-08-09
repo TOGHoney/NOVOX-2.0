@@ -47,23 +47,24 @@ app.get('/api/extract-article', async (req, res) => {
     }
 });
 
-// Connect to MongoDB
+// Create HTTP server and attach Socket.IO immediately so the API is available right away
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+        methods: ['GET', 'POST']
+    }
+});
+initSocket(io);
+
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+// Connect to MongoDB in the background
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log('Connected to MongoDB successfully');
-        // Create HTTP server and attach Socket.IO
-        const server = http.createServer(app);
-        const io = new Server(server, {
-            cors: {
-                origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
-                methods: ['GET', 'POST']
-            }
-        });
-        initSocket(io);
-
-        server.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
     })
     .catch((err) => {
         console.error('Database connection error:', err.message);
