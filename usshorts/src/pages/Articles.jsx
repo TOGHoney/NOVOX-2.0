@@ -25,6 +25,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 import { InteractiveText, WordIntelligencePanel } from '../components/WordIntelligence';
 import CommentSidebar from '../components/CommentSidebar';
+import BookmarkButton from '../components/BookmarkButton';
 
 export default function Articles() {
   const [viewMode, setViewMode] = useState('feed');
@@ -54,7 +55,6 @@ export default function Articles() {
 
   // Floating Comments State
   const [showComments, setShowComments] = useState(false);
-  const [commentList, setCommentList] = useState([]);
 
   // Article Translation
   const { translations, loading: translating, unavailable } = useArticleTranslation(articles);
@@ -299,8 +299,7 @@ export default function Articles() {
       <CommentSidebar
         showComments={showComments}
         setShowComments={setShowComments}
-        commentList={commentList}
-        setCommentList={setCommentList}
+        articleUrl={activeArticle?.url}
       />
 
       {/* PAGE 1: FEED VIEW */}
@@ -385,9 +384,12 @@ export default function Articles() {
                           {isExpanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
                           {isExpanded ? "Hide Summary" : "Read Summary"}
                         </button>
-                        <button onClick={() => handleOpenFullArticle(article)} style={{ border: 'none', background: 'transparent', color: '#64748b', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                          Full Article <FiExternalLink size={12} />
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <BookmarkButton article={article} />
+                          <button onClick={() => handleOpenFullArticle(article)} style={{ border: 'none', background: 'transparent', color: '#64748b', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                            Full Article <FiExternalLink size={12} />
+                          </button>
+                        </div>
                       </div>
                       {isExpanded && (
                         <div style={{ marginTop: '0.5rem', padding: '0.65rem', background: '#f8fafc', borderRadius: '6px', borderLeft: '3px solid #2563eb', fontSize: '0.78rem', color: '#334155' }}>
@@ -425,6 +427,7 @@ export default function Articles() {
               <FiArrowLeft size={14} /> Back to Feed
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <BookmarkButton article={activeArticle} />
               <button
                 onClick={() => setShowComments(!showComments)}
                 style={{

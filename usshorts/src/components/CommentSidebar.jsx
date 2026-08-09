@@ -1,5 +1,9 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { FiMessageSquare, FiX, FiLink, FiImage, FiVideo, FiSend } from 'react-icons/fi';
+import { FiMessageSquare, FiX, FiLink, FiImage, FiVideo, FiSend, FiTrash2, FiCornerUpLeft } from 'react-icons/fi';
+import { fetchComments, postComment, deleteComment } from '../api/commentService';
+import { getUser } from '../api/authService';
+
+const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
 
 export const FormattedComment = ({ text }) => {
   if (!text) return null;
@@ -51,9 +55,17 @@ export const FormattedComment = ({ text }) => {
   return <span dangerouslySetInnerHTML={{ __html: formatted }} style={{ color: '#e2e8f0' }} />;
 };
 
-export default function CommentSidebar({ showComments, setShowComments, commentList, setCommentList }) {
+export default function CommentSidebar({ showComments, setShowComments, articleUrl }) {
+  const [commentList, setCommentList] = useState([]);
   const [commentText, setCommentText] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(false);
   const textareaRef = useRef(null);
+
+  const currentUser = getUser();
+  const currentUserId = currentUser?._id || null;
 
   // Position and Dimension State
   const [commentPos, setCommentPos] = useState({ x: window.innerWidth - 420, y: 80 });
@@ -64,6 +76,27 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
 
   const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0 });
   const resizeRef = useRef({ startX: 0, startY: 0, initialW: 0, initialH: 0 });
+
+  useEffect(() => {
+    let isMounted = true;
+    if (showComments && articleUrl) {
+      setLoading(true);
+      setError(false);
+      fetchComments(articleUrl)
+        .then((data) => {
+          if (isMounted) setCommentList(Array.isArray(data) ? data : []);
+        })
+        .catch(() => {
+          if (isMounted) setError(true);
+        })
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [showComments, articleUrl]);
 
   // Drag Handlers
   const handleMouseDownDrag = (e) => {
@@ -133,7 +166,7 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = commentText.substring(start, end);
-    
+
     let updatedText = '';
     if (selectedText.length > 0) {
       updatedText =
@@ -168,17 +201,34 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
     setCommentText((prev) => `${prev} ![video](${url})`);
   };
 
-  const handleAddComment = () => {
-    if (!commentText.trim()) return;
-    const newComment = {
-      id: Date.now(),
-      author: '@You',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-      text: commentText,
-      isReply: false
-    };
-    setCommentList([...commentList, newComment]);
-    setCommentText('');
+  const handleAddComment = async () => {
+    if (!commentText.trim() || !articleUrl) return;
+    setSubmitting(true);
+    try {
+      const created = await postComment(articleUrl, commentText, replyTo?.id || null);
+      setCommentList((prev) => [...prev, created]);
+      setCommentText('');
+      setReplyTo(null);
+    } catch {
+      // keep text so the user can retry
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (id) => {
+    try {
+      await deleteComment(id);
+      setCommentList((prev) => prev.filter((c) => c.id !== id));
+      if (replyTo?.id === id) setReplyTo(null);
+    } catch {
+      // ignore
+    }
+  };
+
+  const startReply = (comment) => {
+    setReplyTo({ id: comment.id, author: comment.author });
+    if (textareaRef.current) textareaRef.current.focus();
   };
 
   if (!showComments) return null;
@@ -222,7 +272,7 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
           <FiMessageSquare size={16} color="#38bdf8" />
           <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f8fafc' }}>Comments</span>
         </div>
-        
+
         {/* Top-Right Far-Corner Close Button */}
         <button
           className="close-btn"
@@ -255,7 +305,15 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
 
       {/* Comment List Feed */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-        {commentList.length === 0 ? (
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b', fontSize: '0.82rem' }}>
+            Loading comments...
+          </div>
+        ) : error ? (
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#f87171', fontSize: '0.82rem' }}>
+            Failed to load comments.
+          </div>
+        ) : commentList.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b', fontSize: '0.82rem' }}>
             No comments yet. Be the first to start the conversation!
           </div>
@@ -265,14 +323,33 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
               {item.isReply && (
                 <div style={{ position: 'absolute', left: '-12px', top: '-10px', width: '10px', height: '22px', borderLeft: '2px solid #334155', borderBottom: '2px solid #334155', borderBottomLeftRadius: '6px' }} />
               )}
-              <img src={item.avatar} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', marginTop: '2px' }} />
+              <img src={DEFAULT_AVATAR} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', marginTop: '2px' }} />
               <div style={{ flex: 1, backgroundColor: '#1e2738', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid #2a3447' }}>
-                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa', marginBottom: '0.2rem' }}>
-                  {item.author}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa', flex: 1 }}>
+                    {item.author}
+                  </div>
+                  {item.userId === currentUserId && (
+                    <button
+                      onClick={() => handleDeleteComment(item.id)}
+                      title="Delete comment"
+                      style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', display: 'flex', padding: '2px' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
+                    >
+                      <FiTrash2 size={12} />
+                    </button>
+                  )}
                 </div>
-                <div style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+                <div style={{ fontSize: '0.8rem', lineHeight: '1.4', marginTop: '0.2rem' }}>
                   <FormattedComment text={item.text} />
                 </div>
+                <button
+                  onClick={() => startReply(item)}
+                  style={{ marginTop: '0.4rem', border: 'none', background: 'transparent', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', fontWeight: 600 }}
+                >
+                  <FiCornerUpLeft size={11} /> Reply
+                </button>
               </div>
             </div>
           ))
@@ -282,11 +359,20 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
       {/* Footer Area with Custom Grip & Hover Tooltip */}
       <div style={{ padding: '0.75rem', borderTop: '1px solid #2a3447', backgroundColor: '#1a2232', flexShrink: 0, position: 'relative' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', backgroundColor: '#0f172a', borderRadius: '10px', padding: '0.5rem', border: '1px solid #334155' }}>
+          {replyTo && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', color: '#38bdf8' }}>
+              <span>Replying to {replyTo.author}</span>
+              <button onClick={() => setReplyTo(null)} style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
+                <FiX size={12} />
+              </button>
+            </div>
+          )}
           <textarea
             ref={textareaRef}
             rows={2}
-            placeholder="Write a comment..."
+            placeholder={currentUser ? 'Write a comment...' : 'Login to comment'}
             value={commentText}
+            disabled={!currentUser}
             onChange={(e) => setCommentText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -302,7 +388,8 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
               fontSize: '0.8rem',
               outline: 'none',
               resize: 'none',
-              fontFamily: 'inherit'
+              fontFamily: 'inherit',
+              opacity: currentUser ? 1 : 0.6
             }}
           />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.2rem', borderTop: '1px solid #1e293b' }}>
@@ -315,7 +402,8 @@ export default function CommentSidebar({ showComments, setShowComments, commentL
             </div>
             <button
               onClick={handleAddComment}
-              style={{ border: 'none', background: '#2563eb', color: '#fff', borderRadius: '6px', padding: '0.3rem 0.6rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              disabled={!currentUser || submitting}
+              style={{ border: 'none', background: '#2563eb', color: '#fff', borderRadius: '6px', padding: '0.3rem 0.6rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: currentUser ? 1 : 0.5 }}
             >
               <FiSend size={13} />
             </button>

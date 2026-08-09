@@ -1,48 +1,63 @@
-# LinguaBrief — LibreTranslate Integration
+# LinguaBrief — Comments & Bookmarks
 
-Self-hosted LibreTranslate so news articles can be translated into a chosen language (English, Spanish, French, German, Japanese).
+Persistent, per-article comments (visible to every user) plus a per-user bookmark feature, with bookmarks surfaced in the Progress tab.
 
-## Why self-hosted
-- Free, unlimited, private (no per-day quotas like the hosted libretranslate.com API).
-- Runs locally on port **5002** during development.
-- Production: run it on the **same cloud server as the Express backend** and point `LIBRETRANSLATE_URL` at it (e.g. `http://127.0.0.1:5002`). Netlify alone can't run it — Netlify only hosts static files.
+## Requirements
+- Comments are stored in MongoDB, keyed by article URL, attributed to the logged-in author.
+- **Every user can read all comments** on an article (public read). Posting/replying/deleting requires login; delete is owner-only.
+- Bookmark button on the **Articles page only** (feed cards + full reader toolbar).
+- Bookmarks section as a **panel inside the Progress dashboard grid**.
 
-## Status
+## Backend
 
-### Done
-1. **LibreTranslate installed** in Python venv at `usshorts/.libretranslate/` (verified working on Python 3.14). `pip install libretranslate` (v1.9.6).
-2. **npm scripts** in `usshorts/package.json`:
-   - `lt:install` — create venv + install libretranslate
-   - `lt:start` — run server on `127.0.0.1:5002 --load-only en,es,fr,de,ja`
-3. **`.gitignore`** — added `.libretranslate/`.
-4. **Backend** (`backend/`):
-   - `services/libreTranslateService.js` — proxies to `LIBRETRANSLATE_URL/translate` via native `fetch`, batch `texts[]`, per-text in-memory cache (1h TTL), preserves input order, 120s timeout.
-   - `controllers/translateController.js` — validates `{ texts, target }`, whitelists `en,es,fr,de,ja`, returns `503` when the service is down.
-   - `routes/translateRoutes.js` — `POST /api/translate`.
-   - `app.js` — mounted at `/api/translate`.
-   - `.env` + `example.env` — added `LIBRETRANSLATE_URL=http://localhost:5002`.
-5. **Frontend** (`src/`):
-   - `api/translateService.js` — `translateTexts(texts, target)`.
-   - `context/LanguageContext.jsx` — `targetLanguage` state + `LANGUAGES` list + provider/hook.
-   - `components/LanguageSelector.jsx` — dropdown (EN/ES/FR/DE/JA), replaces the globe icon in `Header.jsx`.
-   - `hooks/useArticleTranslation.js` — batch-translates `title`, `description`, `aiSummary`, `content` per article; exposes `translations`, `loading`, `unavailable`.
-   - Wired into `Home.jsx`, `Articles.jsx`, `Explore.jsx` (+ `NewsCard.jsx` and `ArticlePanel.jsx` with per-card "Show original" toggle; graceful fallback to original text when the service is down).
-   - `styles/global.css` — `.language-select` styles.
-6. **LibreTranslate server** running on `127.0.0.1:5002` (verified `/languages` responds).
+1. `models/Comment.js` (new)
+   - `articleUrl` (string, required, indexed)
+   - `user` (ObjectId ref `User`, required)
+   - `text` (string, required)
+   - `isReply` (bool, default false), `parent` (ObjectId ref `Comment`, default null)
+   - `timestamps`
 
-### In progress / Left
-- [ ] **Language models download (currently running).** Only `en→fr` has fully installed so far; `en→es`, `en→de`, `en→ja` downloads were flaky (connection resets to `raw.githubusercontent.com`). Verify all 4 models are installed in `~/.local/share/argos-translate/packages/`.
-- [ ] End-to-end test: `POST http://127.0.0.1:5002/translate` for `es`/`de`/`ja`.
-- [ ] Test backend proxy: `POST http://localhost:5000/api/translate` (needs backend + LibreTranslate running).
-- [ ] Test UI: `npm run dev`, pick a language in the header, confirm articles translate and the "Show original" toggle works.
-- [ ] Test offline fallback: with LibreTranslate stopped, confirm pages show original text + "Translation service unavailable" note.
+2. `controllers/commentController.js` (new)
+   - `getComments(articleUrl)` — public; sorted oldest→newest; populate `user.username`
+   - `createComment` — auth; validates text; supports optional `parentId`
+   - `deleteComment` — auth; owner (or admin) only
 
-## How to run (dev)
-```
-npm run lt:install   # once
-npm run dev          # starts Vite + Express backend + LibreTranslate together
-```
-`npm run dev` launches Vite (:5173), the Express backend (:5000), and LibreTranslate (:5002) via `concurrently --kill-others-on-fail`. Pressing Ctrl+C stops all three. Run `npm run lt:start` alone only for isolated translation testing.
+3. `routes/commentRoutes.js` (new)
+   - `GET /api/comments?articleUrl=...` (public)
+   - `POST /api/comments` (auth)
+   - `DELETE /api/comments/:id` (auth)
 
-## Deployment note
-On the server hosting the backend: install libretranslate, run it on `127.0.0.1:5002`, set `LIBRETRANSLATE_URL=http://127.0.0.1:5002`. Do NOT rely on a local copy on the developer laptop.
+4. `models/Bookmark.js` (new)
+   - `user` (ObjectId ref `User`, indexed)
+   - `articleUrl` (string, required)
+   - `article` snapshot: `{ title, description, content, imageUrl, url, source, publishedAt, category, aiSummary }`
+   - unique index `{ user: 1, articleUrl: 1 }`
+   - `timestamps`
+
+5. `controllers/bookmarkController.js` (new)
+   - `getBookmarks` — auth; user's bookmarks, newest first
+   - `addBookmark` — auth; upsert by `(user, articleUrl)`; stores article snapshot
+   - `removeBookmark` — auth; delete by `(user, articleUrl)`
+
+6. `routes/bookmarkRoutes.js` (new)
+   - `GET /api/bookmarks` (auth)
+   - `POST /api/bookmarks` (auth)
+   - `DELETE /api/bookmarks?articleUrl=...` (auth)
+
+7. `app.js` — mount `/api/comments` and `/api/bookmarks`.
+
+## Frontend
+
+8. `api/commentService.js` (new) — `fetchComments(articleUrl)`, `postComment(articleUrl, text, parentId?)`, `deleteComment(id)`. Uses `client` (auto-attaches JWT).
+9. `api/bookmarkService.js` (new) — `getBookmarks()`, `addBookmark(article)`, `removeBookmark(articleUrl)`. Uses `client`.
+10. `context/BookmarksContext.jsx` (new) — loads user's bookmarks on mount; exposes `bookmarks`, `isBookmarked(url)`, `toggleBookmark(article)`, `removeBookmark(url)`.
+11. `components/BookmarkButton.jsx` (new) — `FiBookmark` filled/outline toggle.
+12. `components/CommentSidebar.jsx` — refactor to accept `articleUrl`; fetch comments on open; post via API (author = logged-in username); delete own comments; keep existing markdown-formatting UI.
+13. `pages/Articles.jsx` — add `BookmarkButton` to feed cards and full-reader toolbar; pass `activeArticle.url` to `CommentSidebar`.
+14. `App.jsx` — wrap app in `BookmarksProvider`.
+15. `components/DashboardPanel.jsx` — add a **Bookmarks** panel to the dashboard grid (title/source/date, remove button, empty state).
+
+## Notes
+- Article `url` is the stable key (feed `id` is an index only).
+- No `User` model changes; bookmarks/comments live in their own collections.
+- `GET /api/comments` is public so every user sees the full thread.
