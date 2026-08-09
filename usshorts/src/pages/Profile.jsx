@@ -226,15 +226,6 @@ export default function Profile() {
                   <div style={styles.infoValue}>{profile?.cefrLevel || "Not set"}</div>
                 )}
               </div>
-
-              <div style={styles.infoCard}>
-                <div style={styles.infoLabel}>
-                  <FiCheckCircle style={styles.infoIcon} /> Profile Status
-                </div>
-                <div style={styles.infoValue}>
-                  {profile?.profileCompleted ? "Completed" : "Incomplete"}
-                </div>
-              </div>
             </div>
 
             {isEditing && (
