@@ -11,13 +11,15 @@ app.use(express.json());
 const authRoutes = require('./routes/authRoutes');
 const newsRoutes = require('./routes/newsRoutes');
 const userRoutes = require('./routes/userRoutes');
-app.use('/api/auth', authRoutes);
-app.use('/api/news', newsRoutes);
-app.use('/api/users', userRoutes);
+const commentRoutes = require('./routes/commentRoutes');
+const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const debateRoutes = require('./routes/debateRoutes');
 const translateRoutes = require('./routes/translateRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/debates', debateRoutes);
 app.use('/api/translate', translateRoutes);
 
