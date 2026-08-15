@@ -1,138 +1,257 @@
 import { useState } from 'react';
-import { FiSearch } from 'react-icons/fi';
-import NewsCard from '../components/NewsCard';
+import { FiSearch, FiX, FiExternalLink } from 'react-icons/fi';
 import NotFound from './NotFound';
 import { searchNews } from '../api/newsService';
 import useArticleTranslation from '../hooks/useArticleTranslation';
 import { useLanguage } from '../context/LanguageContext';
 
-const TOPICS = ['Technology', 'Business', 'Science', 'Health', 'Sports', 'Entertainment'];
+export default function Explore({ isOpen, onClose, onSelectArticle }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const { translations, loading: translating, unavailable } = useArticleTranslation(articles);
+  const { targetLanguage } = useLanguage();
 
-export default function Explore() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [articles, setArticles] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(false);
-    const [hasSearched, setHasSearched] = useState(false);
-    const { translations, loading: translating, unavailable } = useArticleTranslation(articles);
-    const { targetLanguage } = useLanguage();
+  const handleSearch = async (query) => {
+    if (!query.trim()) return;
+    setLoading(true);
+    setError(false);
+    setHasSearched(true);
+    try {
+      const data = await searchNews(query);
+      setArticles(data || []);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleSearch = async (query) => {
-        if (!query.trim()) return;
-        setLoading(true);
-        setError(false);
-        setHasSearched(true);
-        try {
-            const data = await searchNews(query);
-            setArticles(data);
-        } catch {
-            setError(true);
-        } finally {
-            setLoading(false);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleSearch(searchQuery);
+  };
+
+  const handleArticleClick = (article) => {
+    if (onSelectArticle) {
+      onSelectArticle(article);
+    }
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  if (error) return <NotFound />;
+
+  return (
+    <>
+      {/* Styles to make scrollbars completely invisible */}
+      <style>{`
+        /* Hide scrollbar for WebKit (Chrome, Safari, Edge) */
+        .explore-scroll-area::-webkit-scrollbar {
+          display: none;
+          width: 0px;
+          background: transparent;
         }
-    };
+        /* Hide scrollbar for Firefox & IE */
+        .explore-scroll-area {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+      `}</style>
+      <aside
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: isOpen ? '72px' : '-360px',
+          width: '360px',
+          height: '100vh',
+          backgroundColor: 'var(--bg-card, #ffffff)',
+          borderRight: isOpen ? '1px solid var(--border, #e2e8f0)' : 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+          transition: 'left 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease',
+          opacity: isOpen ? 1 : 0,
+          zIndex: 100,
+          pointerEvents: isOpen ? 'auto' : 'none'
+        }}
+      >
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '1.25rem 1.25rem 0.75rem 1.25rem',
+              flexShrink: 0
+            }}
+          >
+            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: 'var(--text, #0f172a)' }}>
+              Explore
+            </h2>
+            <button
+              onClick={onClose}
+              style={{
+                border: 'none',
+                background: 'var(--bg, #f1f5f9)',
+                borderRadius: '50%',
+                width: '34px',
+                height: '34px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'var(--text-muted, #475569)'
+              }}
+            >
+              <FiX size={18} />
+            </button>
+          </div>
 
-    const handleTopicClick = (topic) => {
-        setSearchQuery(topic);
-        handleSearch(topic);
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        handleSearch(searchQuery);
-    };
-
-    if (error) return <NotFound />;
-
-    return (
-        <div className="explore-page" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-            <div className="section-head" style={{ marginBottom: '2rem' }}>
-                <div>
-                    <p className="eyebrow">Explore Topics</p>
-                    <h2>Search news and get AI summaries</h2>
-                </div>
+          {/* Search Input */}
+          <form onSubmit={handleSubmit} style={{ padding: '0 1.25rem 1rem 1.25rem', flexShrink: 0 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'var(--bg, #f1f5f9)',
+                borderRadius: '24px',
+                padding: '0.65rem 1rem',
+                border: '1px solid var(--border, #cbd5e1)'
+              }}
+            >
+              <FiSearch size={18} style={{ color: 'var(--text-muted, #64748b)', marginRight: '0.6rem' }} />
+              <input
+                type="text"
+                placeholder="Search topics, keywords, or news..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text, #0f172a)',
+                  width: '100%',
+                  outline: 'none',
+                  fontSize: '0.9rem'
+                }}
+              />
             </div>
+          </form>
 
-            <form onSubmit={handleSubmit} className="search-container" style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
-                <div className="search-box" style={{ flex: 1, display: 'flex', alignItems: 'center', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
-                    <FiSearch style={{ marginRight: '0.75rem', color: 'var(--text-muted)' }} />
-                    <input
-                        type="text"
-                        placeholder="Search topics, keywords, or news..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        style={{ background: 'none', border: 'none', color: 'var(--text)', width: '100%', outline: 'none', fontSize: '1rem' }}
-                    />
+          {/* Scrollable Area with Hidden Scrollbar */}
+          <div 
+            className="explore-scroll-area"
+            style={{ 
+              flex: 1, 
+              overflowY: 'auto', 
+              padding: '0 1.25rem 1.25rem 1.25rem',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {/* Results List or Empty State */}
+            <div className="results-section" style={{ marginTop: '0.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                  <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.85rem' }}>Searching news...</p>
                 </div>
-                <button type="submit" className="primary-btn">Search</button>
-            </form>
-
-            <div className="topics-section" style={{ marginBottom: '3rem' }}>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>Browse Topics</h3>
-                <div className="topic-wrap" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    {TOPICS.map((topic) => (
-                        <button
-                            key={topic}
-                            onClick={() => handleTopicClick(topic)}
-                            className="topic-chip"
+              ) : hasSearched ? (
+                <>
+                  <h3 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text, #0f172a)' }}>
+                    Top 5 Results for "{searchQuery}"
+                  </h3>
+                  {(translating || unavailable) && targetLanguage !== 'en' && (
+                    <div style={{ fontSize: '0.78rem', opacity: 0.7, marginBottom: '0.75rem', color: 'var(--text-muted)' }}>
+                      {unavailable
+                        ? 'Translation service unavailable — showing original text.'
+                        : `Translating results to ${targetLanguage.toUpperCase()}...`}
+                    </div>
+                  )}
+                  {articles.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {articles.slice(0, 5).map((article) => {
+                        const displayTitle = translations[article.id]?.title || article.title;
+                        return (
+                          <div
+                            key={article.id || article.url}
                             style={{
-                                padding: '0.5rem 1.25rem',
-                                borderRadius: '20px',
-                                border: '1px solid var(--border)',
-                                background: searchQuery === topic ? 'var(--primary)' : 'var(--bg-card)',
-                                color: searchQuery === topic ? 'white' : 'var(--text)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                fontWeight: 500,
+                              padding: '0.85rem 1rem',
+                              borderRadius: '12px',
+                              background: 'var(--bg, #f8fafc)',
+                              border: '1px solid var(--border, #e2e8f0)',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              justifyContent: 'space-between',
+                              gap: '0.75rem'
                             }}
-                        >
-                            {topic}
-                        </button>
-                    ))}
+                          >
+                            <h4
+                              style={{
+                                margin: 0,
+                                fontSize: '0.88rem',
+                                fontWeight: 600,
+                                lineHeight: '1.35',
+                                color: 'var(--text, #0f172a)'
+                              }}
+                            >
+                              {displayTitle}
+                            </h4>
+                            <button
+                              onClick={() => handleArticleClick(article)}
+                              title="Open full article locally"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '0.35rem',
+                                borderRadius: '6px',
+                                background: 'var(--bg-card, #ffffff)',
+                                border: '1px solid var(--border, #cbd5e1)',
+                                color: 'var(--primary, #800020)',
+                                cursor: 'pointer',
+                                flexShrink: 0
+                              }}
+                            >
+                              <FiExternalLink size={14} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '2rem', background: 'var(--bg, #f8fafc)', borderRadius: '12px' }}>
+                      <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.85rem', margin: 0 }}>
+                        No articles found for this search.
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Adjusted Maroon Empty Placeholder State */
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: '12rem' }}>
+                  <p
+                    style={{
+                      color: '#800020',
+                      fontWeight: 400,
+                      fontSize: '0.85rem',
+                      textAlign: 'center',
+                      margin: 0
+                    }}
+                  >
+                    search news you heard about
+                  </p>
                 </div>
+              )}
             </div>
-
-            <div className="results-section">
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '3rem' }}>
-                        <p style={{ opacity: 0.5 }}>Searching news...</p>
-                    </div>
-                ) : hasSearched ? (
-                    <>
-                        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem' }}>
-                            Results for "{searchQuery}" ({articles.length})
-                        </h3>
-                        {articles.length > 0 ? (
-                            <div className="news-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
-                                {(translating || unavailable) && targetLanguage !== 'en' && (
-                                    <div style={{ fontSize: '0.85rem', opacity: 0.7, gridColumn: '1 / -1' }}>
-                                        {unavailable
-                                            ? 'Translation service unavailable — showing original text.'
-                                            : `Translating results to ${targetLanguage.toUpperCase()}...`}
-                                    </div>
-                                )}
-                                {articles.map((article) => (
-                                    <NewsCard
-                                        key={article.id}
-                                        article={article}
-                                        activeId={null}
-                                        onSelect={() => { }}
-                                        translation={translations[article.id] || null}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>No articles found for this search.</p>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Use the search bar or pick a topic to explore news.</p>
-                    </div>
-                )}
-            </div>
+          </div>
         </div>
-    );
+      </aside>
+    </>
+  );
 }
