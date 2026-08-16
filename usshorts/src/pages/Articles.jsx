@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import NotFound from './NotFound';
 import { fetchHeadlines } from '../api/newsService';
 import {
@@ -11,6 +10,7 @@ import {
   FiX,
   FiMessageSquare
 } from 'react-icons/fi';
+
 import {
   CATEGORIES,
   analyzeWordContext,
@@ -19,8 +19,10 @@ import {
   deriveWordForms,
   estimateCEFR
 } from '../utils/articleUtils';
+
 import useArticleTranslation from '../hooks/useArticleTranslation';
 import { useLanguage } from '../context/LanguageContext';
+
 import { InteractiveText, WordIntelligencePanel } from '../components/WordIntelligence';
 import CommentSidebar from '../components/CommentSidebar';
 import BookmarkButton from '../components/BookmarkButton';
@@ -58,22 +60,6 @@ export default function Articles() {
   const { translations, loading: translating, unavailable } = useArticleTranslation(articles);
   const { targetLanguage } = useLanguage();
 
-  // Outlet context from AppLayout (handles opening full article directly from Explore)
-  const outletContext = useOutletContext();
-  const selectedArticleFromExplore = outletContext?.selectedArticle;
-
-  const handleOpenFullArticle = useCallback((article) => {
-    setActiveArticle(article);
-    setViewMode('full');
-  }, []);
-
-  // Sync selected article from Explore drawer to open in full local reader view
-  useEffect(() => {
-    if (selectedArticleFromExplore) {
-      handleOpenFullArticle(selectedArticleFromExplore);
-    }
-  }, [selectedArticleFromExplore, handleOpenFullArticle]);
-
   useEffect(() => {
     if (viewMode === 'full' && activeArticle?.url) {
       setFetchingFullText(true);
@@ -100,9 +86,7 @@ export default function Articles() {
         if (!isMounted) return;
         const safeData = data || [];
         setArticles(safeData);
-        if (safeData.length > 0 && !selectedArticleFromExplore) {
-          setActiveArticle(safeData[0]);
-        }
+        if (safeData.length > 0) setActiveArticle(safeData[0]);
         setHasMore(safeData.length > 0);
       })
       .catch(() => {
@@ -157,6 +141,11 @@ export default function Articles() {
     }));
   };
 
+  const handleOpenFullArticle = (article) => {
+    setActiveArticle(article);
+    setViewMode('full');
+  };
+
   const playSpeechFallback = useCallback((wordToSpeak) => {
     if ('speechSynthesis' in window && wordToSpeak) {
       window.speechSynthesis.cancel();
@@ -193,11 +182,13 @@ export default function Articles() {
     const contextAnalysis = analyzeWordContext(cleanWord, sentence);
     const detectedPOS = contextAnalysis.pos;
     const lookupWord = contextAnalysis.lemma;
+
     try {
       const translationPromise = fetch(
         `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${langCode}&dt=t&q=${encodeURIComponent(lookupWord)}`,
         { signal }
       ).then(res => res.json()).then(data => data[0]?.[0]?.[0]).catch(() => lookupWord);
+
       const conceptsPromise = fetchDatamuseConcepts(lookupWord, signal);
       const [translatedText, semanticConcepts] = await Promise.all([translationPromise, conceptsPromise]);
       if (!signal.aborted && translatedText) {
@@ -208,6 +199,7 @@ export default function Articles() {
       let meaningsList = [];
       let synonymsSet = new Set(semanticConcepts.slice(0, 5));
       let antonymsSet = new Set();
+
       try {
         const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${lookupWord}`, { signal });
         if (dictRes.ok) {
@@ -240,6 +232,7 @@ export default function Articles() {
       } catch (err) {
         if (err.name === 'AbortError') return;
       }
+
       let primaryMeanings = meaningsList.filter(
         (m) => m.partOfSpeech.toLowerCase() === detectedPOS.toLowerCase()
       );
@@ -255,6 +248,7 @@ export default function Articles() {
       );
       const baseConfidence = primaryMeanings[0]?.definitions[0]?.confidence || 75;
       const finalConfidence = Math.max(40, baseConfidence - confidencePenalty);
+
       if (!signal.aborted) {
         setWordDetails({
           phonetic: phoneticText || `/${lookupWord}/`,
@@ -320,7 +314,7 @@ export default function Articles() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  background: '#800020',
+                  background: '#2563eb',
                   color: '#fff',
                   border: 'none',
                   padding: '0.45rem 0.9rem',
@@ -344,7 +338,7 @@ export default function Articles() {
                   fontSize: '0.78rem',
                   borderRadius: '16px',
                   border: '1px solid #cbd5e1',
-                  background: selectedCategory === cat.value ? '#800020' : '#fff',
+                  background: selectedCategory === cat.value ? '#2563eb' : '#fff',
                   color: selectedCategory === cat.value ? '#fff' : '#475569',
                   cursor: 'pointer'
                 }}
@@ -376,7 +370,7 @@ export default function Articles() {
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
                         <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
-                          {article.source?.name || article.source || 'NEWS'} • {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Today'}
+                          {article.source?.name || 'NEWS'} • {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Today'}
                         </span>
                         <h3 style={{ margin: '0.25rem 0 0.5rem 0', fontSize: '1rem', color: '#0f172a', fontWeight: 700 }}>
                           <InteractiveText text={translation?.title || article.title} onSelectWord={handleWordSelect} />
@@ -386,7 +380,7 @@ export default function Articles() {
                         </p>
                       </div>
                       <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <button onClick={() => toggleSummary(articleId)} style={{ border: 'none', background: 'transparent', color: '#800020', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <button onClick={() => toggleSummary(articleId)} style={{ border: 'none', background: 'transparent', color: '#2563eb', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                           {isExpanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
                           {isExpanded ? "Hide Summary" : "Read Summary"}
                         </button>
@@ -398,8 +392,8 @@ export default function Articles() {
                         </div>
                       </div>
                       {isExpanded && (
-                        <div style={{ marginTop: '0.5rem', padding: '0.65rem', background: '#fdf2f4', borderRadius: '6px', borderLeft: '3px solid #800020', fontSize: '0.78rem', color: '#334155' }}>
-                          <InteractiveText text={translation?.aiSummary || article.aiSummary || translation?.content || article.content || article.description} onSelectWord={handleWordSelect} />
+                        <div style={{ marginTop: '0.5rem', padding: '0.65rem', background: '#f8fafc', borderRadius: '6px', borderLeft: '3px solid #2563eb', fontSize: '0.78rem', color: '#334155' }}>
+                          <InteractiveText text={translation?.content || translation?.aiSummary || article.content || article.summary || article.description} onSelectWord={handleWordSelect} />
                         </div>
                       )}
                     </div>
@@ -452,7 +446,7 @@ export default function Articles() {
               >
                 <FiMessageSquare size={14} /> Comments
               </button>
-              <a href={activeArticle.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', textDecoration: 'none', color: '#800020', border: '1px solid #e0a8b0', background: '#fdf2f4', padding: '0.35rem 0.7rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+              <a href={activeArticle.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', textDecoration: 'none', color: '#2563eb', border: '1px solid #bfdbfe', background: '#eff6ff', padding: '0.35rem 0.7rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
                 Open Original Source <FiExternalLink size={12} />
               </a>
             </div>
@@ -469,8 +463,8 @@ export default function Articles() {
                 <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
                   This publisher blocks automated scraping or requires a subscription.
                 </p>
-                <a href={activeArticle.url} target="_blank" rel="noopener noreferrer" style={{ background: '#800020', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem' }}>
-                  Read directly on {activeArticle.source?.name || activeArticle.source || 'Source Website'}
+                <a href={activeArticle.url} target="_blank" rel="noopener noreferrer" style={{ background: '#2563eb', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem' }}>
+                  Read directly on {activeArticle.source?.name || 'Source Website'}
                 </a>
               </div>
             )}
@@ -582,7 +576,7 @@ export default function Articles() {
                     <div style={{ overflowY: 'auto', paddingRight: '0.75rem' }}>
                       <p style={{ margin: 0, fontSize: '1rem', color: '#334155', lineHeight: 1.7, fontWeight: 400 }}>
                         <InteractiveText
-                          text={translation?.aiSummary || article.aiSummary || translation?.content || article.description || article.content || "Summary content not available."}
+                          text={translation?.content || translation?.aiSummary || article.content || article.description || article.summary || "Summary content not available."}
                           onSelectWord={handleWordSelect}
                         />
                       </p>
@@ -591,7 +585,7 @@ export default function Articles() {
                       onClick={() => handleOpenFullArticle(article)}
                       style={{
                         marginTop: '1.5rem',
-                        background: '#800020',
+                        background: '#2563eb',
                         color: '#fff',
                         border: 'none',
                         padding: '0.85rem 1.25rem',
@@ -609,9 +603,12 @@ export default function Articles() {
                   <div style={{ background: '#f8fafc', padding: '1.5rem 1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <button
                       onClick={() => setShowComments(!showComments)}
-                      style={{ background: '#800020', color: '#fff', border: 'none', padding: '0.7rem', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+                      style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '0.7rem', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
                     >
-                      <FiMessageSquare size={14} /> Comment Box
+                      <FiMessageSquare size={14} /> Join Discussion Room
+                    </button>
+                    <button style={{ background: '#fff', color: '#0f172a', border: '1px solid #cbd5e1', padding: '0.7rem', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', width: '100%' }}>
+                      Related Debates
                     </button>
                     <WordIntelligencePanel
                       targetLang={targetLang}
