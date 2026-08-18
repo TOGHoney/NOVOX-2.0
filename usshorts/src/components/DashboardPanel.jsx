@@ -1,6 +1,44 @@
+import { useState, useEffect } from 'react';
 import { dashboardStats, leaderboard, quests, topics } from '../data/mockData';
 import { useBookmarks } from '../context/BookmarksContext';
 import { FiBookmark, FiTrash2 } from 'react-icons/fi';
+
+// Helper function to update and fetch daily streak logic
+const updateDailyStreak = () => {
+  const todayStr = new Date().toLocaleDateString('en-CA'); // Formats local date as YYYY-MM-DD
+  const lastVisit = localStorage.getItem('lastStreakVisitDate');
+  const storedStreak = localStorage.getItem('userStreakCount');
+  
+  let currentStreak = storedStreak ? parseInt(storedStreak, 10) : 0;
+
+  if (!lastVisit) {
+    // First visit ever: set streak to 1
+    currentStreak = 1;
+  } else if (lastVisit !== todayStr) {
+    const lastDate = new Date(lastVisit);
+    const todayDate = new Date(todayStr);
+
+    const diffTime = todayDate.getTime() - lastDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+
+    if (diffDays === 1) {
+      // Consecutive day visit
+      currentStreak = (currentStreak > 0 ? currentStreak : 0) + 1;
+    } else if (diffDays > 1) {
+      // Missed one or more days: reset streak to 1 today
+      currentStreak = 1;
+    }
+  } else if (currentStreak === 0) {
+    // Fallback if stored streak was somehow 0 on same-day visit
+    currentStreak = 1;
+  }
+
+  // Persist updated values
+  localStorage.setItem('lastStreakVisitDate', todayStr);
+  localStorage.setItem('userStreakCount', currentStreak.toString());
+
+  return currentStreak;
+};
 
 function BookmarksPanel() {
   const { bookmarks, loading, remove } = useBookmarks();
@@ -69,7 +107,7 @@ function BookmarksPanel() {
                   title="Remove bookmark"
                   style={{ border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: '6px', borderRadius: '6px' }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)'; e.currentTarget.style.color = '#ef4444'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.color = 'var(--text-muted)'; }}
                 >
                   <FiTrash2 size={16} />
                 </button>
@@ -83,24 +121,122 @@ function BookmarksPanel() {
 }
 
 export default function DashboardPanel() {
+  const [savedWordsCount, setSavedWordsCount] = useState(0);
+  const [commentsCount, setCommentsCount] = useState(0);
+  const [streakCount, setStreakCount] = useState(() => updateDailyStreak());
+
+  useEffect(() => {
+    // 1. Evaluate Daily Streak on mount and window focus
+    const updateStreak = () => {
+      const currentStreak = updateDailyStreak();
+      setStreakCount(currentStreak);
+    };
+
+    updateStreak();
+
+    // 2. Fetch Saved Words Count
+    const fetchSavedWordsCount = async () => {
+      try {
+        let token = localStorage.getItem('token') || localStorage.getItem('jwt');
+        if (!token) {
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              token = parsedUser.token || parsedUser.jwt;
+            } catch (e) {
+              console.error('Failed to parse user from localStorage', e);
+            }
+          }
+        }
+
+        const res = await fetch(`http://localhost:5000/api/saved-words?t=${Date.now()}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+          }
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          
+          let list = [];
+          if (Array.isArray(json)) {
+            list = json;
+          } else if (Array.isArray(json.data)) {
+            list = json.data;
+          } else if (Array.isArray(json.words)) {
+            list = json.words;
+          } else if (Array.isArray(json.savedWords)) {
+            list = json.savedWords;
+          }
+
+          setSavedWordsCount(list.length);
+        }
+      } catch (err) {
+        console.error('Failed to fetch saved words count:', err);
+      }
+    };
+
+    fetchSavedWordsCount();
+
+    const handleFocus = () => {
+      updateStreak();
+      fetchSavedWordsCount();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
   return (
-    <section className="dashboard-grid">
-      <div className="panel">
+    <div className="dashboard-grid">
+      <div className="panel full">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">Learning dashboard</p>
-            <h3>Weekly progress</h3>
+            <p className="eyebrow">Overview</p>
+            <h3>Learning Metrics</h3>
           </div>
-          <span className="pill success">On track</span>
         </div>
         <div className="stats-grid">
-          {dashboardStats.map((item) => (
-            <div className="stat-card" key={item.label}>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <small>{item.delta}</small>
-            </div>
-          ))}
+          {dashboardStats.map((item) => {
+            const isWordsLearned = item.label.toLowerCase() === 'words learned';
+            const isWordsRead = item.label.toLowerCase() === 'words read';
+            const isReadingStreak = item.label.toLowerCase().includes('streak');
+
+            // Render "Comments made"
+            if (isWordsRead) {
+              return (
+                <div className="stat-card" key="comments-made">
+                  <span>Comments made</span>
+                  <strong>{commentsCount.toLocaleString()}</strong>
+                  <small>{item.delta}</small>
+                </div>
+              );
+            }
+
+            // Render live "Reading streak"
+            if (isReadingStreak) {
+              return (
+                <div className="stat-card" key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{streakCount} {streakCount === 1 ? 'day' : 'days'}</strong>
+                  <small>{item.delta}</small>
+                </div>
+              );
+            }
+
+            // Default card rendering
+            return (
+              <div className="stat-card" key={item.label}>
+                <span>{item.label}</span>
+                <strong>
+                  {isWordsLearned ? savedWordsCount.toLocaleString() : item.value}
+                </strong>
+                <small>{item.delta}</small>
+              </div>
+            );
+          })}
         </div>
       </div>
       <div className="panel">
@@ -117,34 +253,20 @@ export default function DashboardPanel() {
       <div className="panel">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">Trending topics</p>
-            <h3>Personalized focus</h3>
+            <p className="eyebrow">Top Learners</p>
+            <h3>Leaderboard</h3>
           </div>
         </div>
-        <div className="topic-wrap">
-          {topics.map((topic) => <span key={topic} className="topic-chip">{topic}</span>)}
-        </div>
-      </div>
-      <div className="panel">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">Leaderboard</p>
-            <h3>Community momentum</h3>
-          </div>
-        </div>
-        <ul className="rank-list">
-          {leaderboard.map((player, index) => (
-            <li key={player.name}>
-              <div>
-                <strong>#{index + 1} {player.name}</strong>
-                <span>{player.badge}</span>
-              </div>
-              <b>{player.xp} XP</b>
+        <ol className="list">
+          {leaderboard.map((user) => (
+            <li key={user.name}>
+              <span>{user.name}</span>
+              <strong>{user.points} pts</strong>
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
       <BookmarksPanel />
-    </section>
+    </div>
   );
 }

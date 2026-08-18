@@ -15,6 +15,7 @@ const commentRoutes = require('./routes/commentRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const debateRoutes = require('./routes/debateRoutes');
 const translateRoutes = require('./routes/translateRoutes');
+const wordRoutes = require('./routes/wordRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/users', userRoutes);
@@ -22,6 +23,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/debates', debateRoutes);
 app.use('/api/translate', translateRoutes);
+app.use('/api/saved-words', wordRoutes);
 
 // Basic Route for testing
 app.get('/', (req, res) => {
