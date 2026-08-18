@@ -30,6 +30,8 @@ const bookmarkRoutes = require('./routes/bookmarkRoutes');
 
 const debateRoutes = require('./routes/debateRoutes');
 
+const feedRoutes = require('./routes/feedRoutes');
+
 const translateRoutes = require('./routes/translateRoutes');
 
 const wordRoutes = require('./routes/wordRoutes');
@@ -49,6 +51,8 @@ app.use('/api/debates', debateRoutes);
 app.use('/api/translate', translateRoutes);
 
 app.use('/api/saved-words', wordRoutes);
+
+app.use('/api/feed', feedRoutes);
 
 
 
