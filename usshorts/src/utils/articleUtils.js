@@ -5,13 +5,18 @@ const nlp = winkNLP(model);
 const { its } = nlp;
 
 export const CATEGORIES = [
-  { label: 'All', value: 'general' },
+  { label: 'All', value: 'all' },
   { label: 'Technology', value: 'technology' },
-  { label: 'Business', value: 'business' },
-  { label: 'Science', value: 'science' },
-  { label: 'Health', value: 'health' },
+  { label: 'Movies', value: 'movies' },
+  { label: 'USA', value: 'usa' },
+  { label: 'India', value: 'india' },
+  { label: 'Japan', value: 'japan' },
+  { label: 'China', value: 'china' },
+  { label: 'Russia', value: 'russia' },
   { label: 'Sports', value: 'sports' },
-  { label: 'Entertainment', value: 'entertainment' },
+  { label: 'Education', value: 'education' },
+  { label: 'Politics', value: 'politics' },
+  { label: 'Foreign Relations', value: 'foreign-relations' },
 ];
 
 export const LANGUAGES = [

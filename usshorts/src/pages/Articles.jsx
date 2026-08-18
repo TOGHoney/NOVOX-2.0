@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import NotFound from './NotFound';
-import { fetchHeadlines } from '../api/newsService';
+import { fetchFeed, fetchSummaries } from '../api/feedService';
 import {
   FiExternalLink,
   FiChevronDown,
@@ -28,14 +28,15 @@ import BookmarkButton from '../components/BookmarkButton';
 export default function Articles() {
   const [viewMode, setViewMode] = useState('feed');
   const [articles, setArticles] = useState([]);
-  const [page, setPage] = useState(1);
+  const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('general');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeArticle, setActiveArticle] = useState(null);
   const [expandedSummaries, setExpandedSummaries] = useState({});
+  const [summaryLoading, setSummaryLoading] = useState({});
   
   // Extracted Full Text State
   const [extractedArticle, setExtractedArticle] = useState(null);
@@ -94,16 +95,16 @@ export default function Articles() {
     let isMounted = true;
     setLoading(true);
     setError(false);
-    setPage(1);
-    fetchHeadlines(selectedCategory, 1)
+    setOffset(0);
+    fetchFeed(0, 20, selectedCategory)
       .then((data) => {
         if (!isMounted) return;
-        const safeData = data || [];
+        const safeData = data?.articles || [];
         setArticles(safeData);
         if (safeData.length > 0 && !selectedArticleFromExplore) {
           setActiveArticle(safeData[0]);
         }
-        setHasMore(safeData.length > 0);
+        setHasMore(data?.hasMore ?? false);
       })
       .catch(() => {
         if (isMounted) setError(true);
@@ -119,21 +120,23 @@ export default function Articles() {
   const loadMoreArticles = useCallback(() => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
-    const nextPage = page + 1;
-    fetchHeadlines(selectedCategory, nextPage)
+    const nextOffset = articles.length;
+    fetchFeed(nextOffset, 20, selectedCategory)
       .then((data) => {
-        if (!data || data.length === 0) {
+        const newArticles = data?.articles || [];
+        if (newArticles.length === 0) {
           setHasMore(false);
         } else {
-          setArticles((prev) => [...prev, ...data]);
-          setPage(nextPage);
+          setArticles((prev) => [...prev, ...newArticles]);
+          setOffset(nextOffset);
+          setHasMore(data?.hasMore ?? false);
         }
       })
       .catch(() => {
         setHasMore(false);
       })
       .finally(() => setLoadingMore(false));
-  }, [selectedCategory, page, loadingMore, hasMore]);
+  }, [selectedCategory, articles.length, loadingMore, hasMore]);
 
   const observer = useRef(null);
   const lastArticleElementRef = useCallback(
@@ -150,11 +153,38 @@ export default function Articles() {
     [loading, loadingMore, hasMore, loadMoreArticles]
   );
 
-  const toggleSummary = (articleId) => {
-    setExpandedSummaries(prev => ({
-      ...prev,
-      [articleId]: !prev[articleId]
-    }));
+  const toggleSummary = async (articleId) => {
+    const isCurrentlyExpanded = expandedSummaries[articleId];
+
+    if (isCurrentlyExpanded) {
+      setExpandedSummaries(prev => ({ ...prev, [articleId]: false }));
+      return;
+    }
+
+    setExpandedSummaries(prev => ({ ...prev, [articleId]: true }));
+
+    const article = articles.find(a => (a._id || a.id || a.url) === articleId);
+    if (article && !article.aiSummary) {
+      setSummaryLoading(prev => ({ ...prev, [articleId]: true }));
+      try {
+        const result = await fetchSummaries([article._id || article.id]);
+        if (result?.articles?.length > 0) {
+          const updated = result.articles[0];
+          setArticles(prev =>
+            prev.map(a =>
+              (a._id || a.id) === articleId ? { ...a, aiSummary: updated.aiSummary } : a
+            )
+          );
+          if (activeArticle && (activeArticle._id || activeArticle.id) === articleId) {
+            setActiveArticle(prev => ({ ...prev, aiSummary: updated.aiSummary }));
+          }
+        }
+      } catch {
+        // Summary generation failed — leave aiSummary as null
+      } finally {
+        setSummaryLoading(prev => ({ ...prev, [articleId]: false }));
+      }
+    }
   };
 
   const playSpeechFallback = useCallback((wordToSpeak) => {
@@ -434,10 +464,11 @@ export default function Articles() {
             ) : (
               articles.map((article, index) => {
                 const isLast = index === articles.length - 1;
-                const articleId = article.id || article.url || index;
+                const articleId = article._id || article.url || index;
                 const isExpanded = !!expandedSummaries[articleId];
+                const isLoadingSummary = !!summaryLoading[articleId];
                 const imageUrl = article.urlToImage || article.image || article.imageUrl;
-                const translation = translations[article.id];
+                const translation = translations[article._id || article.id];
 
                 return (
                   <div key={articleId} ref={isLast ? lastArticleElementRef : null} style={{ background: '#fff', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e2e8f0', display: 'flex', gap: '1rem' }}>
@@ -445,7 +476,7 @@ export default function Articles() {
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
                         <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
-                          {article.source?.name || article.source || 'NEWS'} • {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Today'}
+                          {article.source?.name || article.source || 'NEWS'} • {article.topic ? article.topic.replace('-', ' ') : ''} • {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : article.fetchedAt ? new Date(article.fetchedAt).toLocaleDateString() : 'Today'}
                         </span>
                         <h3 style={{ margin: '0.25rem 0 0.5rem 0', fontSize: '1rem', color: '#0f172a', fontWeight: 700 }}>
                           <InteractiveText text={translation?.title || article.title} onSelectWord={handleWordSelect} />
@@ -470,7 +501,11 @@ export default function Articles() {
 
                       {isExpanded && (
                         <div style={{ marginTop: '0.5rem', padding: '0.65rem', background: '#fdf2f4', borderRadius: '6px', borderLeft: '3px solid #800020', fontSize: '0.78rem', color: '#334155' }}>
-                          <InteractiveText text={translation?.aiSummary || article.aiSummary || translation?.content || article.content || article.description} onSelectWord={handleWordSelect} />
+                          {isLoadingSummary ? (
+                            <span style={{ fontStyle: 'italic', color: '#64748b' }}>Generating summary...</span>
+                          ) : (
+                            <InteractiveText text={translation?.aiSummary || article.aiSummary || translation?.content || article.content || article.description} onSelectWord={handleWordSelect} />
+                          )}
                         </div>
                       )}
                     </div>
@@ -613,11 +648,11 @@ export default function Articles() {
             {articles.map((article, index) => {
               const isLast = index === articles.length - 1;
               const imageUrl = article.urlToImage || article.image || article.imageUrl || article.url_to_image;
-              const translation = translations[article.id];
+              const translation = translations[article._id || article.id];
 
               return (
                 <div
-                  key={article.id || article.url || index}
+                  key={article._id || article.url || index}
                   ref={isLast ? lastArticleElementRef : null}
                   style={{
                     scrollSnapAlign: 'start',
