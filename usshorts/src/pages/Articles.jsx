@@ -36,7 +36,7 @@ export default function Articles() {
   const [selectedCategory, setSelectedCategory] = useState('general');
   const [activeArticle, setActiveArticle] = useState(null);
   const [expandedSummaries, setExpandedSummaries] = useState({});
-
+  
   // Extracted Full Text State
   const [extractedArticle, setExtractedArticle] = useState(null);
   const [fetchingFullText, setFetchingFullText] = useState(false);
@@ -175,6 +175,7 @@ export default function Articles() {
     }
   };
 
+
   const activeAbortController = useRef(null);
   const fetchWordIntelligence = async (selectedText, langCode, sentence = '') => {
     if (activeAbortController.current) {
@@ -182,32 +183,41 @@ export default function Articles() {
     }
     activeAbortController.current = new AbortController();
     const { signal } = activeAbortController.current;
+
     setDetailsLoading(true);
     setWordDetails(null);
     setTranslation('');
+
     const cleanWord = selectedText.trim().replace(/[^a-zA-Z]/g, '').toLowerCase();
     if (!cleanWord) {
       setDetailsLoading(false);
       return;
     }
+
     const contextAnalysis = analyzeWordContext(cleanWord, sentence);
     const detectedPOS = contextAnalysis.pos;
     const lookupWord = contextAnalysis.lemma;
+
     try {
       const translationPromise = fetch(
         `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${langCode}&dt=t&q=${encodeURIComponent(lookupWord)}`,
         { signal }
       ).then(res => res.json()).then(data => data[0]?.[0]?.[0]).catch(() => lookupWord);
+
       const conceptsPromise = fetchDatamuseConcepts(lookupWord, signal);
+
       const [translatedText, semanticConcepts] = await Promise.all([translationPromise, conceptsPromise]);
+
       if (!signal.aborted && translatedText) {
         setTranslation(translatedText);
       }
+
       let phoneticText = '';
       let audioUrl = '';
       let meaningsList = [];
       let synonymsSet = new Set(semanticConcepts.slice(0, 5));
       let antonymsSet = new Set();
+
       try {
         const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${lookupWord}`, { signal });
         if (dictRes.ok) {
@@ -216,6 +226,7 @@ export default function Articles() {
           phoneticText = entry.phonetic || (entry.phonetics && entry.phonetics.find(p => p.text)?.text) || '';
           const audioObj = entry.phonetics?.find(p => p.audio && p.audio.trim() !== '');
           if (audioObj) audioUrl = audioObj.audio;
+
           if (entry.meanings && entry.meanings.length > 0) {
             entry.meanings.forEach((m) => {
               const defsObj = (m.definitions || []).map(d => {
@@ -227,11 +238,14 @@ export default function Articles() {
                   confidence: evalResult.confidence
                 };
               });
+
               defsObj.sort((a, b) => b.score - a.score);
+
               meaningsList.push({
                 partOfSpeech: m.partOfSpeech.toLowerCase(),
                 definitions: defsObj
               });
+
               if (m.synonyms) m.synonyms.forEach(s => synonymsSet.add(s));
               if (m.antonyms) m.antonyms.forEach(a => antonymsSet.add(a));
             });
@@ -240,21 +254,27 @@ export default function Articles() {
       } catch (err) {
         if (err.name === 'AbortError') return;
       }
+
       let primaryMeanings = meaningsList.filter(
         (m) => m.partOfSpeech.toLowerCase() === detectedPOS.toLowerCase()
       );
+
       let actualPOS = detectedPOS;
       let confidencePenalty = 0;
+
       if (primaryMeanings.length === 0 && meaningsList.length > 0) {
         primaryMeanings = [meaningsList[0]];
         actualPOS = meaningsList[0].partOfSpeech;
         confidencePenalty = 20;
       }
+
       const remainingMeanings = meaningsList.filter(
         (m) => !primaryMeanings.includes(m)
       );
+
       const baseConfidence = primaryMeanings[0]?.definitions[0]?.confidence || 75;
       const finalConfidence = Math.max(40, baseConfidence - confidencePenalty);
+
       if (!signal.aborted) {
         setWordDetails({
           phonetic: phoneticText || `/${lookupWord}/`,
@@ -295,6 +315,51 @@ export default function Articles() {
       fetchWordIntelligence(selectedWord, newLang, contextSentence);
     }
   };
+  const handleSaveWord = useCallback(async (payload) => {
+  const wordToSave = payload?.word || selectedWord;
+  if (!wordToSave) return;
+
+  // Retrieve auth token from localStorage
+  let token = localStorage.getItem('token') || localStorage.getItem('jwt');
+  if (!token) {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        token = parsedUser.token || parsedUser.jwt;
+      } catch (e) {
+        console.error('Failed to parse user token:', e);
+      }
+    }
+  }
+
+  const wordPayload = {
+    word: wordToSave,
+    translation: payload?.translation || translation || '',
+    contextSentence: payload?.contextSentence || contextSentence || '',
+    phonetic: payload?.phonetic || wordDetails?.phonetic || '',
+    pos: wordDetails?.detectedPOS || '',
+    definition: payload?.definition || wordDetails?.primaryMeanings?.[0]?.definitions?.[0]?.definition || '',
+    cefr: payload?.cefr || wordDetails?.cefr || 'B1'
+  };
+
+  try {
+    const response = await fetch('http://localhost:5000/api/saved-words', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: JSON.stringify(wordPayload)
+    });
+
+    if (!response.ok) {
+      console.error('Failed to save word:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Failed to auto-save word:', error);
+  }
+}, [selectedWord, translation, contextSentence, wordDetails]);
 
   if (error) return <NotFound />;
 
@@ -334,6 +399,7 @@ export default function Articles() {
               </button>
             </div>
           </div>
+
           <div style={{ marginBottom: '0.75rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
             {CATEGORIES.map((cat) => (
               <button
@@ -353,6 +419,7 @@ export default function Articles() {
               </button>
             ))}
           </div>
+
           {(translating || unavailable) && targetLanguage !== 'en' && (
             <div style={{ marginBottom: '0.75rem', fontSize: '0.85rem', opacity: 0.7 }}>
               {unavailable
@@ -360,6 +427,7 @@ export default function Articles() {
                 : `Translating to ${targetLanguage.toUpperCase()}...`}
             </div>
           )}
+
           <main style={{ flex: 1, overflowY: 'auto', paddingRight: '6px' }}>
             {loading ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Loading articles...</div>
@@ -370,6 +438,7 @@ export default function Articles() {
                 const isExpanded = !!expandedSummaries[articleId];
                 const imageUrl = article.urlToImage || article.image || article.imageUrl;
                 const translation = translations[article.id];
+
                 return (
                   <div key={articleId} ref={isLast ? lastArticleElementRef : null} style={{ background: '#fff', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e2e8f0', display: 'flex', gap: '1rem' }}>
                     <img src={imageUrl || 'https://via.placeholder.com/180x120?text=No+Image'} alt="" style={{ width: '180px', height: '120px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }} />
@@ -385,6 +454,7 @@ export default function Articles() {
                           <InteractiveText text={translation?.description || article.description || article.snippet} onSelectWord={handleWordSelect} />
                         </p>
                       </div>
+
                       <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <button onClick={() => toggleSummary(articleId)} style={{ border: 'none', background: 'transparent', color: '#800020', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                           {isExpanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
@@ -397,6 +467,7 @@ export default function Articles() {
                           </button>
                         </div>
                       </div>
+
                       {isExpanded && (
                         <div style={{ marginTop: '0.5rem', padding: '0.65rem', background: '#fdf2f4', borderRadius: '6px', borderLeft: '3px solid #800020', fontSize: '0.78rem', color: '#334155' }}>
                           <InteractiveText text={translation?.aiSummary || article.aiSummary || translation?.content || article.content || article.description} onSelectWord={handleWordSelect} />
@@ -408,6 +479,7 @@ export default function Articles() {
               })
             )}
           </main>
+
           {showOverlay && selectedWord && (
             <div style={{ position: 'fixed', bottom: '24px', right: '24px', width: '320px', zIndex: 999 }}>
               <WordIntelligencePanel
@@ -415,10 +487,12 @@ export default function Articles() {
                 handleLangChange={handleLangChange}
                 onClose={() => setShowOverlay(false)}
                 selectedWord={selectedWord}
+                contextSentence={contextSentence}
                 detailsLoading={detailsLoading}
                 wordDetails={wordDetails}
                 playAudio={playAudio}
                 translation={translation}
+                onSaveWord={handleSaveWord}
               />
             </div>
           )}
@@ -457,6 +531,7 @@ export default function Articles() {
               </a>
             </div>
           </div>
+
           <div style={{ flex: 1, overflowY: 'auto', background: '#fff', borderRadius: '12px', padding: '2rem', border: '1px solid #cbd5e1' }}>
             {fetchingFullText && (
               <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
@@ -495,6 +570,7 @@ export default function Articles() {
               </article>
             )}
           </div>
+
           {showOverlay && selectedWord && (
             <div style={{ position: 'fixed', bottom: '24px', right: '24px', width: '320px', zIndex: 999 }}>
               <WordIntelligencePanel
@@ -502,10 +578,12 @@ export default function Articles() {
                 handleLangChange={handleLangChange}
                 onClose={() => setShowOverlay(false)}
                 selectedWord={selectedWord}
+                contextSentence={contextSentence}
                 detailsLoading={detailsLoading}
                 wordDetails={wordDetails}
                 playAudio={playAudio}
                 translation={translation}
+                onSaveWord={handleSaveWord}
               />
             </div>
           )}
@@ -536,6 +614,7 @@ export default function Articles() {
               const isLast = index === articles.length - 1;
               const imageUrl = article.urlToImage || article.image || article.imageUrl || article.url_to_image;
               const translation = translations[article.id];
+
               return (
                 <div
                   key={article.id || article.url || index}
@@ -578,6 +657,7 @@ export default function Articles() {
                       </span>
                     </div>
                   </div>
+
                   <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRight: '1px solid #f1f5f9' }}>
                     <div style={{ overflowY: 'auto', paddingRight: '0.75rem' }}>
                       <p style={{ margin: 0, fontSize: '1rem', color: '#334155', lineHeight: 1.7, fontWeight: 400 }}>
@@ -606,6 +686,7 @@ export default function Articles() {
                       Read full article
                     </button>
                   </div>
+
                   <div style={{ background: '#f8fafc', padding: '1.5rem 1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <button
                       onClick={() => setShowComments(!showComments)}
@@ -617,10 +698,12 @@ export default function Articles() {
                       targetLang={targetLang}
                       handleLangChange={handleLangChange}
                       selectedWord={selectedWord}
+                      contextSentence={contextSentence}
                       detailsLoading={detailsLoading}
                       wordDetails={wordDetails}
                       playAudio={playAudio}
                       translation={translation}
+                      onSaveWord={handleSaveWord}
                     />
                   </div>
                 </div>
