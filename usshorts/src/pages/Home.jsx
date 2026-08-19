@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import NewsCard from '../components/NewsCard';
 import ArticlePanel from '../components/ArticlePanel';
 import NotFound from './NotFound';
 import { fetchHeadlines } from '../api/newsService';
 import useArticleTranslation from '../hooks/useArticleTranslation';
 import { useLanguage } from '../context/LanguageContext';
+
 
 // Centralized Axios Client
 import client from '../api/client';
@@ -120,12 +122,15 @@ export default function Home() {
     // Custom Deck Creation Handler (POST to Backend via Central Client)
     const handleCreateCustomDeck = async (e) => {
         e.preventDefault();
-        const filtered = filterWordsByDateRange(savedWords, startDate, endDate);
+        let filtered = filterWordsByDateRange(savedWords, startDate, endDate);
+        if (filtered.length === 0 && savedWords.length > 0 && !startDate && !endDate) {
+            filtered = savedWords;
+        }
         const title =
             deckName.trim() ||
             (startDate && endDate
                 ? `Deck ${startDate} - ${endDate}`
-                : `Custom Deck (${filtered.length} words)`);
+                : `Flashcard Deck (${filtered.length} words)`);
         const newDeckPayload = {
             title,
             deck: filtered,
@@ -144,6 +149,7 @@ export default function Home() {
         setStartDate('');
         setEndDate('');
     };
+
 
     // Delete Custom Deck Handler (DELETE to Backend via Central Client)
     const handleDeleteDeck = async (id) => {
@@ -207,12 +213,31 @@ export default function Home() {
             
             {/* CONTESTS SECTION (SEARCH PRIVATE & PUBLIC LIST) */}
             <div style={{ marginBottom: '3rem', background: '#ffffff', borderRadius: '16px', padding: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                    <FiFlag size={22} color="#5a1818" />
-                    <h3 style={{ margin: 0, fontSize: '1.4rem', color: '#5a1818', fontWeight: 800 }}>
-                        Official Contests
-                    </h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <FiFlag size={22} color="#5a1818" />
+                        <h3 style={{ margin: 0, fontSize: '1.4rem', color: '#5a1818', fontWeight: 800 }}>
+                            Official Contests
+                        </h3>
+                    </div>
+                    <Link
+                        to="/admin/contests"
+                        style={{
+                            fontSize: '0.82rem',
+                            fontWeight: 700,
+                            color: '#800020',
+                            textDecoration: 'none',
+                            background: '#fdf2f4',
+                            border: '1px solid #e0a8b0',
+                            padding: '0.4rem 0.85rem',
+                            borderRadius: '8px',
+                            transition: 'all 0.15s ease'
+                        }}
+                    >
+                        + Host Contest
+                    </Link>
                 </div>
+
                 {/* Passcode Entry Bar */}
                 <div style={{ marginBottom: '1.5rem' }}>
                     <ContestSearch onContestFound={(contest) => setActiveContest(contest)} />
@@ -334,11 +359,12 @@ export default function Home() {
                         >
                             <input
                                 type="text"
-                                placeholder="dd-mm-yyyy"
+                                placeholder="Deck Title (e.g. Vocabulary Set 1)"
                                 value={deckName}
                                 onChange={(e) => setDeckName(e.target.value)}
                                 style={inputStyle}
                             />
+
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <input
                                     type="date"

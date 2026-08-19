@@ -90,3 +90,14 @@ exports.deleteComment = async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+
+exports.getUserCommentsCount = async (req, res) => {
+    try {
+        const count = await Comment.countDocuments({ user: req.user._id });
+        res.status(200).json({ count });
+    } catch (error) {
+        console.error('getUserCommentsCount error:', error.message);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+

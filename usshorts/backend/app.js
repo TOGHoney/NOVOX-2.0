@@ -35,6 +35,7 @@ const feedRoutes = require('./routes/feedRoutes');
 const translateRoutes = require('./routes/translateRoutes');
 const wordRoutes = require('./routes/wordRoutes');
 const contestRoutes = require('./routes/contestRoutes');
+const deckRoutes = require('./routes/deckRoutes');
 
 app.use('/api/auth', authRoutes);
 
@@ -51,8 +52,10 @@ app.use('/api/debates', debateRoutes);
 app.use('/api/translate', translateRoutes);
 app.use('/api/saved-words', wordRoutes);
 app.use('/api/contests', contestRoutes);
+app.use('/api/flashcard-decks', deckRoutes);
 
 app.use('/api/feed', feedRoutes);
+
 
 
 

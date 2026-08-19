@@ -177,16 +177,50 @@ export default function DashboardPanel() {
       }
     };
 
+    const fetchCommentsCount = async () => {
+      try {
+        let token = localStorage.getItem('token') || localStorage.getItem('jwt');
+        if (!token) {
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              token = parsedUser.token || parsedUser.jwt;
+            } catch (e) {
+              console.error('Failed to parse user from localStorage', e);
+            }
+          }
+        }
+
+        const res = await fetch(`http://localhost:5000/api/comments/user-count?t=${Date.now()}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+          }
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          setCommentsCount(json.count || 0);
+        }
+      } catch (err) {
+        console.error('Failed to fetch comments count:', err);
+      }
+    };
+
     fetchSavedWords();
+    fetchCommentsCount();
 
     const handleFocus = () => {
       updateStreak();
       fetchSavedWords();
+      fetchCommentsCount();
     };
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
+
 
   return (
     <div className="dashboard-grid">
