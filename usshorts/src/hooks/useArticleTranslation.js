@@ -25,11 +25,12 @@ export default function useArticleTranslation(articles) {
         const texts = [];
         const meta = [];
         articles.forEach((article) => {
+            const articleId = article._id || article.id;
             FIELDS.forEach((field) => {
                 const value = article[field];
                 if (value && typeof value === 'string' && value.trim()) {
                     texts.push(value);
-                    meta.push({ id: article.id, field });
+                    meta.push({ id: articleId, field });
                 }
             });
         });

@@ -2,8 +2,10 @@ require('dotenv').config({ path: './.env' });
 const http = require('http');
 const app = require('./app');
 const mongoose = require('mongoose');
+const cron = require('node-cron');
 const { Server } = require('socket.io');
 const { initSocket } = require('./services/socketService');
+const { fetchAllArticles } = require('./services/articleFetcher');
 
 // Libraries required for article extraction
 const axios = require('axios');
@@ -65,6 +67,15 @@ server.listen(PORT, () => {
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log('Connected to MongoDB successfully');
+
+        // Initial article fetch on startup
+        fetchAllArticles().catch(err => console.error('[Startup] Fetch error:', err.message));
+
+        // Schedule article fetch every 6 hours
+        cron.schedule('0 */6 * * *', () => {
+            console.log('[Cron] Running scheduled article fetch...');
+            fetchAllArticles().catch(err => console.error('[Cron] Fetch error:', err.message));
+        });
     })
     .catch((err) => {
         console.error('Database connection error:', err.message);

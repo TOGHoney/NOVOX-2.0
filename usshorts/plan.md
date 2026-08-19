@@ -1,63 +1,76 @@
-# LinguaBrief — Comments & Bookmarks
+# LinguaBrief — Persistent Topic-Based Infinite Feed
 
-Persistent, per-article comments (visible to every user) plus a per-user bookmark feature, with bookmarks surfaced in the Progress tab.
+Replace the broken infinite feed (which endlessly repeats the same 20 articles) with a persistent, database-backed article pipeline that fetches 100 articles per topic from NewsAPI, stores them for 7 days, and serves them in a round-robin interleaved feed.
 
-## Requirements
-- Comments are stored in MongoDB, keyed by article URL, attributed to the logged-in author.
-- **Every user can read all comments** on an article (public read). Posting/replying/deleting requires login; delete is owner-only.
-- Bookmark button on the **Articles page only** (feed cards + full reader toolbar).
-- Bookmarks section as a **panel inside the Progress dashboard grid**.
+## Problem
+- `Articles.jsx` calls `fetchHeadlines(category, page)` but the page param is silently dropped
+- Backend always fetches `pageSize=20` with no pagination support
+- Every "load more" re-fetches the same 20 articles → infinite duplicates
+- Articles are never persisted — no database model exists
+
+## Solution
+1. Create `Article` MongoDB model with 7-day TTL auto-cleanup
+2. Backend fetcher pulls 100 articles per topic from NewsAPI (11 topics, 11 API calls)
+3. Cron runs fetcher every 6 hours; also runs on server startup
+4. New `/api/feed` endpoint serves round-robin interleaved articles by topic
+5. Gemini summaries generated on-demand when user clicks "Read Summary" (saves API quota)
+6. Frontend consumes new feed endpoint with proper offset-based infinite scroll
+
+## Topics & NewsAPI Mapping
+| Topic | Endpoint | Parameter |
+|---|---|---|
+| Technology | everything | q=technology |
+| Movies | everything | q=movies |
+| USA | everything | q=USA |
+| India | everything | q=India |
+| Japan | everything | q=Japan |
+| China | everything | q=China |
+| Russia | everything | q=Russia |
+| Sports | top-headlines | category=sports&country=us |
+| Education | everything | q=education |
+| Politics | everything | q=politics |
+| Foreign Relations | everything | q=foreign+relations |
 
 ## Backend
 
-1. `models/Comment.js` (new)
-   - `articleUrl` (string, required, indexed)
-   - `user` (ObjectId ref `User`, required)
-   - `text` (string, required)
-   - `isReply` (bool, default false), `parent` (ObjectId ref `Comment`, default null)
-   - `timestamps`
+### 1. `models/Article.js` (new)
+- Schema: title, description, content, source, url (unique), imageUrl, publishedAt, topic, aiSummary (nullable), fetchedAt
+- TTL index on `fetchedAt` with `expireAfterSeconds: 604800` (7 days)
+- Index on `{ topic: 1, fetchedAt: -1 }`
 
-2. `controllers/commentController.js` (new)
-   - `getComments(articleUrl)` — public; sorted oldest→newest; populate `user.username`
-   - `createComment` — auth; validates text; supports optional `parentId`
-   - `deleteComment` — auth; owner (or admin) only
+### 2. `services/articleFetcher.js` (new)
+- Fetch 100 articles per topic from NewsAPI in parallel
+- Normalize and upsert into Article collection (dedup by URL)
+- Skip Gemini summaries (lazy-loaded on demand)
 
-3. `routes/commentRoutes.js` (new)
-   - `GET /api/comments?articleUrl=...` (public)
-   - `POST /api/comments` (auth)
-   - `DELETE /api/comments/:id` (auth)
+### 3. `controllers/feedController.js` (new)
+- `GET /api/feed?offset=0&limit=20&topic=...` — round-robin interleaved feed
+- `POST /api/feed/summary` — generate Gemini summary for article(s) on demand
 
-4. `models/Bookmark.js` (new)
-   - `user` (ObjectId ref `User`, indexed)
-   - `articleUrl` (string, required)
-   - `article` snapshot: `{ title, description, content, imageUrl, url, source, publishedAt, category, aiSummary }`
-   - unique index `{ user: 1, articleUrl: 1 }`
-   - `timestamps`
+### 4. `routes/feedRoutes.js` (new)
+- `GET /` → getFeed
+- `POST /summary` → fetchSummaries
 
-5. `controllers/bookmarkController.js` (new)
-   - `getBookmarks` — auth; user's bookmarks, newest first
-   - `addBookmark` — auth; upsert by `(user, articleUrl)`; stores article snapshot
-   - `removeBookmark` — auth; delete by `(user, articleUrl)`
-
-6. `routes/bookmarkRoutes.js` (new)
-   - `GET /api/bookmarks` (auth)
-   - `POST /api/bookmarks` (auth)
-   - `DELETE /api/bookmarks?articleUrl=...` (auth)
-
-7. `app.js` — mount `/api/comments` and `/api/bookmarks`.
+### 5. `app.js` — mount `/api/feed`
+### 6. `server.js` — add node-cron schedule + startup fetch
+### 7. `npm install node-cron` in backend
 
 ## Frontend
 
-8. `api/commentService.js` (new) — `fetchComments(articleUrl)`, `postComment(articleUrl, text, parentId?)`, `deleteComment(id)`. Uses `client` (auto-attaches JWT).
-9. `api/bookmarkService.js` (new) — `getBookmarks()`, `addBookmark(article)`, `removeBookmark(articleUrl)`. Uses `client`.
-10. `context/BookmarksContext.jsx` (new) — loads user's bookmarks on mount; exposes `bookmarks`, `isBookmarked(url)`, `toggleBookmark(article)`, `removeBookmark(url)`.
-11. `components/BookmarkButton.jsx` (new) — `FiBookmark` filled/outline toggle.
-12. `components/CommentSidebar.jsx` — refactor to accept `articleUrl`; fetch comments on open; post via API (author = logged-in username); delete own comments; keep existing markdown-formatting UI.
-13. `pages/Articles.jsx` — add `BookmarkButton` to feed cards and full-reader toolbar; pass `activeArticle.url` to `CommentSidebar`.
-14. `App.jsx` — wrap app in `BookmarksProvider`.
-15. `components/DashboardPanel.jsx` — add a **Bookmarks** panel to the dashboard grid (title/source/date, remove button, empty state).
+### 8. `api/feedService.js` (new)
+- `fetchFeed(offset, limit, topic)` → GET /api/feed
+- `fetchSummaries(articleIds)` → POST /api/feed/summary
 
-## Notes
-- Article `url` is the stable key (feed `id` is an index only).
-- No `User` model changes; bookmarks/comments live in their own collections.
-- `GET /api/comments` is public so every user sees the full thread.
+### 9. `utils/articleUtils.js` — update CATEGORIES to 11 new topics
+
+### 10. `pages/Articles.jsx` — rewrite
+- Replace broken page-based fetch with offset-based feed
+- Lazy summary loading via API call
+- Proper infinite scroll with hasMore from server response
+
+## Display Flow
+1. Open Articles → GET /api/feed?offset=0&limit=20 → 20 interleaved articles
+2. Scroll → GET /api/feed?offset=20&limit=20 → next 20 appended
+3. Click "Read Summary" → POST /api/feed/summary → Gemini generates summary on demand
+4. Offset exceeds total → hasMore=false → feed ends naturally
+5. Behind the scenes: cron refreshes every 6 hours, TTL auto-deletes >7 day articles

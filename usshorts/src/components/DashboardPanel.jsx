@@ -1,7 +1,39 @@
 import { useState, useEffect } from 'react';
 import { dashboardStats, leaderboard, quests, topics } from '../data/mockData';
 import { useBookmarks } from '../context/BookmarksContext';
-import { FiBookmark, FiTrash2 } from 'react-icons/fi';
+import { FiBookmark, FiTrash2, FiX } from 'react-icons/fi';
+
+// Helper function to update and fetch daily streak logic
+const updateDailyStreak = () => {
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  const lastVisit = localStorage.getItem('lastStreakVisitDate');
+  const storedStreak = localStorage.getItem('userStreakCount');
+  
+  let currentStreak = storedStreak ? parseInt(storedStreak, 10) : 0;
+
+  if (!lastVisit) {
+    currentStreak = 1;
+  } else if (lastVisit !== todayStr) {
+    const lastDate = new Date(lastVisit);
+    const todayDate = new Date(todayStr);
+
+    const diffTime = todayDate.getTime() - lastDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+
+    if (diffDays === 1) {
+      currentStreak = (currentStreak > 0 ? currentStreak : 0) + 1;
+    } else if (diffDays > 1) {
+      currentStreak = 1;
+    }
+  } else if (currentStreak === 0) {
+    currentStreak = 1;
+  }
+
+  localStorage.setItem('lastStreakVisitDate', todayStr);
+  localStorage.setItem('userStreakCount', currentStreak.toString());
+
+  return currentStreak;
+};
 
 // Helper function to update and fetch daily streak logic
 const updateDailyStreak = () => {
@@ -127,6 +159,12 @@ export default function DashboardPanel() {
 
   useEffect(() => {
     // 1. Evaluate Daily Streak on mount and window focus
+  const [savedWordsList, setSavedWordsList] = useState([]);
+  const [commentsCount, setCommentsCount] = useState(0);
+  const [streakCount, setStreakCount] = useState(() => updateDailyStreak());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
     const updateStreak = () => {
       const currentStreak = updateDailyStreak();
       setStreakCount(currentStreak);
@@ -136,6 +174,7 @@ export default function DashboardPanel() {
 
     // 2. Fetch Saved Words Count
     const fetchSavedWordsCount = async () => {
+    const fetchSavedWords = async () => {
       try {
         let token = localStorage.getItem('token') || localStorage.getItem('jwt');
         if (!token) {
@@ -183,6 +222,18 @@ export default function DashboardPanel() {
     const handleFocus = () => {
       updateStreak();
       fetchSavedWordsCount();
+          setSavedWordsList(list);
+        }
+      } catch (err) {
+        console.error('Failed to fetch saved words list:', err);
+      }
+    };
+
+    fetchSavedWords();
+
+    const handleFocus = () => {
+      updateStreak();
+      fetchSavedWords();
     };
 
     window.addEventListener('focus', handleFocus);
@@ -233,12 +284,107 @@ export default function DashboardPanel() {
                 <strong>
                   {isWordsLearned ? savedWordsCount.toLocaleString() : item.value}
                 </strong>
+            if (isWordsLearned) {
+              return (
+                <div 
+                  className="stat-card" 
+                  key={item.label}
+                  onClick={() => setIsModalOpen(true)}
+                  style={{ cursor: 'pointer', transition: 'transform 0.15s ease' }}
+                  title="Click to view saved words"
+                >
+                  <span>{item.label}</span>
+                  <strong>{savedWordsList.length.toLocaleString()}</strong>
+                  <small>{item.delta}</small>
+                </div>
+              );
+            }
+
+            return (
+              <div className="stat-card" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
                 <small>{item.delta}</small>
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Modal for Words Learned */}
+      {isModalOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justify: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div 
+            style={{
+              background: 'var(--bg-card, #fff)',
+              padding: '1.5rem',
+              borderRadius: '12px',
+              maxWidth: '500px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border, #eee)', paddingBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Saved Words ({savedWordsList.length})</h3>
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted, #666)' }}
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            {savedWordsList.length === 0 ? (
+              <p style={{ opacity: 0.7, fontSize: '0.9rem' }}>No saved words found.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {savedWordsList.map((item, index) => {
+                  const word = typeof item === 'string' ? item : item.word || item.term || 'Unknown word';
+                  const meaning = typeof item === 'object' ? item.meaning || item.definition || item.translation || 'No definition available.' : 'No definition available.';
+                  
+                  return (
+                    <div 
+                      key={item._id || index}
+                      style={{
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        background: 'var(--bg-body, #f8fafc)',
+                        border: '1px solid var(--border, #e2e8f0)'
+                      }}
+                    >
+                      <strong style={{ fontSize: '1rem', color: 'var(--text, #0f172a)', display: 'block', marginBottom: '0.25rem' }}>
+                        {word}
+                      </strong>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted, #475569)' }}>
+                        {meaning}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="panel">
         <div className="panel-heading">
           <div>
