@@ -250,11 +250,6 @@ export default function Profile() {
 const styles = {
   pageContainer: {
     width: "100%",
-    minHeight: "100vh",
-    background: "var(--bg, #ffffff)", // Matches global background
-    color: "#111111",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    padding: "24px",
     minHeight: "100%",
     background: "#ffffff",
     color: "#171717",
@@ -265,7 +260,6 @@ const styles = {
 
   mainWrapper: {
     width: "100%",
-    maxWidth: "1000px",
     maxWidth: "1180px",
     margin: "0 auto",
   },
@@ -273,8 +267,6 @@ const styles = {
   topBar: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "24px",
     alignItems: "flex-end",
     marginBottom: "28px",
     flexWrap: "wrap",
@@ -282,11 +274,6 @@ const styles = {
   },
 
   mainTitle: {
-    fontSize: "1.75rem",
-    fontWeight: "800",
-    letterSpacing: "-0.02em",
-    margin: "0 0 4px 0",
-    color: "#111111", // Solid clean text instead of gradient
     fontSize: "2.35rem",
     fontWeight: "800",
     letterSpacing: "-0.04em",
@@ -295,8 +282,6 @@ const styles = {
   },
 
   subtitle: {
-    fontSize: "0.9rem",
-    color: "#767676",
     fontSize: "0.95rem",
     color: "#737373",
     margin: 0,
@@ -307,15 +292,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    background: "var(--primary, #800020)", // Uses global accent color
-    color: "#ffffff",
-    border: "none",
-    padding: "10px 20px",
-    borderRadius: "24px", // Matches global pill border-radius
-    fontSize: "0.9rem",
-    fontWeight: "700",
-    cursor: "pointer",
-    transition: "all 0.15s ease",
     background: "#8f0d2e",
     color: "#ffffff",
     border: "1px solid #8f0d2e",
@@ -332,10 +308,6 @@ const styles = {
     alignItems: "center",
     gap: "8px",
     background: "#ffffff",
-    color: "#111111",
-    border: "1px solid #e1e1e1",
-    padding: "10px 18px",
-    borderRadius: "24px",
     color: "#262626",
     border: "1px solid #d4d4d4",
     padding: "11px 20px",
@@ -353,10 +325,6 @@ const styles = {
 
   glassCard: {
     background: "#ffffff",
-    border: "1px solid #e1e1e1",
-    borderRadius: "24px",
-    padding: "28px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
     border: "1px solid #e5e5e5",
     borderRadius: "22px",
     padding: "30px",
@@ -380,8 +348,6 @@ const styles = {
   avatarBox: {
     width: "64px",
     height: "64px",
-    borderRadius: "20px",
-    background: "var(--primary, #800020)",
     borderRadius: "50%",
     background: "#171717",
     display: "flex",
@@ -400,10 +366,6 @@ const styles = {
   },
 
   username: {
-    fontSize: "1.35rem",
-    fontWeight: "800",
-    color: "#111111",
-    margin: "0 0 4px 0",
     fontSize: "1.4rem",
     fontWeight: "800",
     color: "#171717",
@@ -411,8 +373,6 @@ const styles = {
   },
 
   email: {
-    fontSize: "0.875rem",
-    color: "#767676",
     fontSize: "0.9rem",
     color: "#737373",
     margin: 0,
@@ -423,10 +383,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "12px",
-    background: "#fef3c7",
-    border: "1px solid #fde68a",
-    padding: "12px 20px",
-    borderRadius: "20px",
     background: "#fff8eb",
     border: "1px solid #efdfc1",
     padding: "14px 20px",
@@ -438,9 +394,6 @@ const styles = {
   },
 
   streakCount: {
-    fontSize: "1.25rem",
-    fontWeight: "800",
-    color: "#b45309",
     fontSize: "1.3rem",
     fontWeight: "800",
     color: "#171717",
@@ -448,9 +401,6 @@ const styles = {
   },
 
   streakLabel: {
-    fontSize: "0.75rem",
-    fontWeight: "700",
-    color: "#d97706",
     fontSize: "0.72rem",
     fontWeight: "700",
     color: "#8a6b2d",
@@ -461,24 +411,18 @@ const styles = {
 
   divider: {
     height: "1px",
-    background: "#e1e1e1",
-    margin: "24px 0",
     background: "#e5e5e5",
     margin: "26px 0",
   },
 
   gridContainer: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
     gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
     gap: "16px",
   },
 
   infoCard: {
     background: "#f7f7f7",
-    border: "1px solid #e1e1e1",
-    borderRadius: "20px",
-    padding: "18px 20px",
     border: "1px solid #e5e5e5",
     borderRadius: "18px",
     padding: "20px",
@@ -491,11 +435,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    fontSize: "0.78rem",
-    fontWeight: "700",
-    color: "#767676",
-    textTransform: "uppercase",
-    letterSpacing: "0.06em",
     fontSize: "0.75rem",
     fontWeight: "800",
     color: "#737373",
@@ -504,7 +443,6 @@ const styles = {
   },
 
   infoIcon: {
-    color: "var(--primary, #800020)",
     color: "#8f0d2e",
     fontSize: "16px",
   },
@@ -512,24 +450,16 @@ const styles = {
   infoValue: {
     fontSize: "1.05rem",
     fontWeight: "700",
-    color: "#111111",
     color: "#171717",
   },
 
   subtext: {
-    fontSize: "0.75rem",
-    color: "#767676",
-    fontWeight: "600",
     fontSize: "0.78rem",
     color: "#8a8a8a",
   },
 
   selectField: {
     background: "#ffffff",
-    border: "1px solid #e1e1e1",
-    borderRadius: "12px",
-    padding: "8px 12px",
-    color: "#111111",
     border: "1px solid #d4d4d4",
     borderRadius: "10px",
     padding: "10px 12px",
@@ -542,7 +472,6 @@ const styles = {
 
   option: {
     background: "#ffffff",
-    color: "#111111",
     color: "#171717",
   },
 
@@ -556,15 +485,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    background: "var(--primary, #800020)",
-    color: "#ffffff",
-    border: "none",
-    padding: "10px 24px",
-    borderRadius: "24px",
-    fontSize: "0.95rem",
-    fontWeight: "700",
-    cursor: "pointer",
-    transition: "all 0.15s ease",
     background: "#8f0d2e",
     color: "#ffffff",
     border: "1px solid #8f0d2e",
@@ -577,9 +497,6 @@ const styles = {
   },
 
   errorBanner: {
-    background: "#ffebe9",
-    border: "1px solid #ffd0cc",
-    color: "var(--primary, #800020)",
     background: "#fff2f3",
     border: "1px solid #f1c8cf",
     color: "#8f0d2e",
@@ -591,9 +508,6 @@ const styles = {
   },
 
   successBanner: {
-    background: "#e6f4ea",
-    border: "1px solid #b7e1cd",
-    color: "#00875a",
     background: "#f2faf4",
     border: "1px solid #cce8d3",
     color: "#26733b",
@@ -607,7 +521,6 @@ const styles = {
   loaderContainer: {
     width: "100%",
     height: "100vh",
-    background: "var(--bg, #ffffff)",
     minHeight: "400px",
     background: "#ffffff",
     display: "flex",
@@ -619,8 +532,6 @@ const styles = {
   spinner: {
     width: "40px",
     height: "40px",
-    border: "3px solid #e1e1e1",
-    borderTop: "3px solid var(--primary, #800020)",
     border: "3px solid #eeeeee",
     borderTop: "3px solid #8f0d2e",
     borderRadius: "50%",
@@ -629,7 +540,6 @@ const styles = {
 
   loaderText: {
     marginTop: "12px",
-    color: "#767676",
     color: "#737373",
     fontSize: "0.9rem",
     fontWeight: "600",

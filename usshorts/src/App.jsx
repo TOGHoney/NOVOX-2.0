@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { BookmarksProvider } from './context/BookmarksContext';
 import AppLayout from './layouts/AppLayout';
@@ -12,6 +12,8 @@ import Debates from './pages/Debates';
 import DebateRoom from './pages/DebateRoom';
 import Progress from './pages/Progress';
 import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
+
 import LearningProfile from './pages/LearningProfile';
 
 export default function App() {
@@ -27,15 +29,17 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/articles" element={<Articles />} />
+              
               <Route path="/debates" element={<Debates />} />
               <Route path="/debates/:id" element={<DebateRoom />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BookmarksProvider>
     </LanguageProvider>
   );
 }
+

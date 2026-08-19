@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     targetLanguage: { type: String},
     nativeLanguage: { type: String, default: "English"},
     cefrLevel: { type: String},
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
     
     profileCompleted: {type: Boolean, default: false},
     streak: {type: Number, default: 0}

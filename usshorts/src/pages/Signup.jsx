@@ -25,9 +25,6 @@ const Signup = () => {
         try {
             await signup({ username, email, password });
             navigate('/learning-profile');
-            await signup({username, email, password});
-            console.log("Navigating..");
-            navigate("/learning-profile");
         } catch (err) {
             console.log(err.response);
             console.log(err.response?.data);
@@ -45,7 +42,6 @@ const Signup = () => {
                 <p className="auth-subtitle">
                     Already have an account?{' '}
                     <a onClick={() => navigate('/login')}>Sign in</a>
-                    <a onClick={() => navigate("/login")}>Sign in</a>
                 </p>
 
                 <form className="auth-form" onSubmit={onSubmit}>

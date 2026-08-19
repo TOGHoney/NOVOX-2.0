@@ -34,8 +34,7 @@ const feedRoutes = require('./routes/feedRoutes');
 
 const translateRoutes = require('./routes/translateRoutes');
 const wordRoutes = require('./routes/wordRoutes');
-
-const wordRoutes = require('./routes/wordRoutes');
+const contestRoutes = require('./routes/contestRoutes');
 
 app.use('/api/auth', authRoutes);
 
@@ -51,8 +50,7 @@ app.use('/api/debates', debateRoutes);
 
 app.use('/api/translate', translateRoutes);
 app.use('/api/saved-words', wordRoutes);
-
-app.use('/api/saved-words', wordRoutes);
+app.use('/api/contests', contestRoutes);
 
 app.use('/api/feed', feedRoutes);
 
@@ -66,8 +64,11 @@ app.get('/', (req, res) => {
 
 });
 
-
+// 4. 404 HANDLER FOR UNMATCHED ROUTES
+app.use((req, res) => {
+    res.status(404).json({ error: '404 - Resource or API endpoint not found' });
+});
 
 // 5. EXPORT THE APP
 
-module.exports = app;
+module.exports = app;

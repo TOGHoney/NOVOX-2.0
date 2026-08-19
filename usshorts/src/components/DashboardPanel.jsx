@@ -5,38 +5,6 @@ import { FiBookmark, FiTrash2, FiX } from 'react-icons/fi';
 
 // Helper function to update and fetch daily streak logic
 const updateDailyStreak = () => {
-  const todayStr = new Date().toLocaleDateString('en-CA');
-  const lastVisit = localStorage.getItem('lastStreakVisitDate');
-  const storedStreak = localStorage.getItem('userStreakCount');
-  
-  let currentStreak = storedStreak ? parseInt(storedStreak, 10) : 0;
-
-  if (!lastVisit) {
-    currentStreak = 1;
-  } else if (lastVisit !== todayStr) {
-    const lastDate = new Date(lastVisit);
-    const todayDate = new Date(todayStr);
-
-    const diffTime = todayDate.getTime() - lastDate.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
-
-    if (diffDays === 1) {
-      currentStreak = (currentStreak > 0 ? currentStreak : 0) + 1;
-    } else if (diffDays > 1) {
-      currentStreak = 1;
-    }
-  } else if (currentStreak === 0) {
-    currentStreak = 1;
-  }
-
-  localStorage.setItem('lastStreakVisitDate', todayStr);
-  localStorage.setItem('userStreakCount', currentStreak.toString());
-
-  return currentStreak;
-};
-
-// Helper function to update and fetch daily streak logic
-const updateDailyStreak = () => {
   const todayStr = new Date().toLocaleDateString('en-CA'); // Formats local date as YYYY-MM-DD
   const lastVisit = localStorage.getItem('lastStreakVisitDate');
   const storedStreak = localStorage.getItem('userStreakCount');
@@ -139,7 +107,7 @@ function BookmarksPanel() {
                   title="Remove bookmark"
                   style={{ border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: '6px', borderRadius: '6px' }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)'; e.currentTarget.style.color = '#ef4444'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.color = 'var(--text-muted)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                 >
                   <FiTrash2 size={16} />
                 </button>
@@ -154,11 +122,6 @@ function BookmarksPanel() {
 
 export default function DashboardPanel() {
   const [savedWordsCount, setSavedWordsCount] = useState(0);
-  const [commentsCount, setCommentsCount] = useState(0);
-  const [streakCount, setStreakCount] = useState(() => updateDailyStreak());
-
-  useEffect(() => {
-    // 1. Evaluate Daily Streak on mount and window focus
   const [savedWordsList, setSavedWordsList] = useState([]);
   const [commentsCount, setCommentsCount] = useState(0);
   const [streakCount, setStreakCount] = useState(() => updateDailyStreak());
@@ -172,8 +135,6 @@ export default function DashboardPanel() {
 
     updateStreak();
 
-    // 2. Fetch Saved Words Count
-    const fetchSavedWordsCount = async () => {
     const fetchSavedWords = async () => {
       try {
         let token = localStorage.getItem('token') || localStorage.getItem('jwt');
@@ -198,7 +159,6 @@ export default function DashboardPanel() {
 
         if (res.ok) {
           const json = await res.json();
-          
           let list = [];
           if (Array.isArray(json)) {
             list = json;
@@ -209,23 +169,11 @@ export default function DashboardPanel() {
           } else if (Array.isArray(json.savedWords)) {
             list = json.savedWords;
           }
-
           setSavedWordsCount(list.length);
-        }
-      } catch (err) {
-        console.error('Failed to fetch saved words count:', err);
-      }
-    };
-
-    fetchSavedWordsCount();
-
-    const handleFocus = () => {
-      updateStreak();
-      fetchSavedWordsCount();
           setSavedWordsList(list);
         }
       } catch (err) {
-        console.error('Failed to fetch saved words list:', err);
+        console.error('Failed to fetch saved words:', err);
       }
     };
 
@@ -255,7 +203,6 @@ export default function DashboardPanel() {
             const isWordsRead = item.label.toLowerCase() === 'words read';
             const isReadingStreak = item.label.toLowerCase().includes('streak');
 
-            // Render "Comments made"
             if (isWordsRead) {
               return (
                 <div className="stat-card" key="comments-made">
@@ -266,7 +213,6 @@ export default function DashboardPanel() {
               );
             }
 
-            // Render live "Reading streak"
             if (isReadingStreak) {
               return (
                 <div className="stat-card" key={item.label}>
@@ -277,13 +223,6 @@ export default function DashboardPanel() {
               );
             }
 
-            // Default card rendering
-            return (
-              <div className="stat-card" key={item.label}>
-                <span>{item.label}</span>
-                <strong>
-                  {isWordsLearned ? savedWordsCount.toLocaleString() : item.value}
-                </strong>
             if (isWordsLearned) {
               return (
                 <div 
@@ -323,7 +262,7 @@ export default function DashboardPanel() {
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             display: 'flex',
             alignItems: 'center',
-            justify: 'center',
+            justifyContent: 'center',
             zIndex: 1000
           }}
           onClick={() => setIsModalOpen(false)}

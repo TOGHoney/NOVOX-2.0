@@ -56,7 +56,8 @@ export default function Explore({ isOpen, onClose, onSelectArticle }) {
     }
   };
 
-  if (error) return <NotFound />;
+  if (error) return <NotFound title="API Error" message="Search request failed. Please check your backend connection." />;
+
 
   return (
     <>

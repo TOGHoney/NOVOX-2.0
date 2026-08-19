@@ -2,6 +2,34 @@ const Contest = require('../models/Contest');
 
 
 
+// Admin: Get all contests (for admin panel)
+
+exports.getAllContests = async (req, res) => {
+
+try {
+
+const contests = await Contest.find()
+
+.select('-questions.correctOptionIndex')
+
+.sort({ createdAt: -1 })
+
+.lean();
+
+res.json(contests);
+
+} catch (error) {
+
+console.error('Get All Contests Error:', error);
+
+res.status(500).json({ message: 'Error fetching contests', error: error.message });
+
+}
+
+};
+
+
+
 // Admin: Create a new contest (Public or Private)
 
 exports.createContest = async (req, res) => {

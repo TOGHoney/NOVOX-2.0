@@ -13,6 +13,7 @@ router.post('/submit', auth, contestController.submitContest);
 router.get('/:id/leaderboard', contestController.getLeaderboard);
 
 // Protected Admin Endpoint
+router.get('/', auth, adminMiddleware, contestController.getAllContests);
 router.post('/create', auth, adminMiddleware, contestController.createContest);
 router.delete('/:id', auth, adminMiddleware, contestController.deleteContest);
 module.exports = router;

@@ -1,5 +1,6 @@
 const Article = require('../models/Article');
 const { summarizeArticle } = require('../services/geminiService');
+const { fetchAllArticles } = require('../services/articleFetcher');
 
 async function getFeed(req, res) {
     try {
@@ -98,4 +99,15 @@ async function fetchSummaries(req, res) {
     }
 }
 
-module.exports = { getFeed, fetchSummaries };
+async function triggerFetch(req, res) {
+    try {
+        fetchAllArticles().catch(err => console.error('[Manual Fetch] Error:', err.message));
+        res.json({ message: 'Article fetcher started successfully.' });
+    } catch (err) {
+        console.error('[Manual Fetch] Error:', err.message);
+        res.status(500).json({ error: 'Failed to trigger article fetcher' });
+    }
+}
+
+module.exports = { getFeed, fetchSummaries, triggerFetch };
+

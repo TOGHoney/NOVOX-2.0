@@ -7,6 +7,12 @@ export const contestService = {
     return response.data;
   },
 
+  // Admin: Fetch all contests
+  getAllContests: async () => {
+    const response = await client.get('/contests');
+    return response.data;
+  },
+
   // Search private contest via passcode
   joinByPasscode: async (passcode) => {
     const response = await client.post('/contests/join-passcode', { passcode });
