@@ -345,6 +345,31 @@ export default function Articles() {
       fetchWordIntelligence(selectedWord, newLang, contextSentence);
     }
   };
+ const handleSaveWord = async (wordData) => {
+    try {
+      let token = localStorage.getItem('token') || localStorage.getItem('jwt');
+      if (!token) {
+        const stored = localStorage.getItem('user');
+        if (stored) token = JSON.parse(stored).token;
+      }
+
+      const res = await fetch('http://localhost:5000/api/saved-words', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify(wordData)
+      });
+
+      if (!res.ok) {
+        console.error('Failed to save word to backend:', res.statusText);
+      }
+    } catch (err) {
+      console.error('Error saving word:', err);
+    }
+  };
+  // -----------------------------------------------------------
   const handleSaveWord = useCallback(async (payload) => {
   const wordToSave = payload?.word || selectedWord;
   if (!wordToSave) return;
