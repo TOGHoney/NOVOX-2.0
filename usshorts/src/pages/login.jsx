@@ -31,7 +31,7 @@ const Login = () => {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <p className="auth-logo">usshorts</p>
+                <p className="auth-logo">NOVOX</p>
                 <h2 className="auth-title">Welcome back</h2>
                 <p className="auth-subtitle">
                     Don't have an account?{' '}

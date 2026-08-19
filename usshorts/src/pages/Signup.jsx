@@ -37,7 +37,7 @@ const Signup = () => {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <p className="auth-logo">usshorts</p>
+                <p className="auth-logo">NOVOX</p>
                 <h2 className="auth-title">Create your account</h2>
                 <p className="auth-subtitle">
                     Already have an account?{' '}
