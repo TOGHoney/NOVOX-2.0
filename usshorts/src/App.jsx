@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { BookmarksProvider } from './context/BookmarksContext';
 import AppLayout from './layouts/AppLayout';
@@ -6,7 +6,6 @@ import { ProtectedRoute } from './components/ProtectedRoutes';
 import Login from './pages/login';
 import Signup from './pages/Signup';
 import Home from './pages/Home';
-import Explore from './pages/Explore';
 import Articles from './pages/Articles';
 import Debates from './pages/Debates';
 import DebateRoom from './pages/DebateRoom';
@@ -28,7 +27,7 @@ export default function App() {
             <Route path="/learning-profile" element={<LearningProfile />} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Home />} />
-              <Route path="/explore" element={<Explore />} />
+              <Route path="/explore" element={<Navigate to="/" replace />} />
               <Route path="/articles" element={<Articles />} />
               
               <Route path="/debates" element={<Debates />} />
