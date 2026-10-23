@@ -49,6 +49,17 @@ public enum Constants {
         return cleaned.isEmpty ? "es" : cleaned
     }
     
+    public static func bcp47(for codeOrName: String) -> String {
+        let code = languageCode(for: codeOrName)
+        if let match = targetLanguages.first(where: { $0.code == code }) {
+            return match.bcp47
+        }
+        if let match = nativeLanguages.first(where: { $0.code == code }) {
+            return match.bcp47
+        }
+        return "en-US"
+    }
+    
     // MARK: - CEFR Proficiency Levels
     public struct CEFRLevel: Identifiable, Hashable, Sendable {
         public var id: String { code }

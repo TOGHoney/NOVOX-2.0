@@ -43,8 +43,23 @@ export default function Articles() {
   const [fetchingFullText, setFetchingFullText] = useState(false);
   const [fetchError, setFetchError] = useState(false);
 
+  // Dynamic Adaptive CEFR Learning Mode
+  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userCefr = (savedUser.cefrLevel || 'B1').substring(0, 2).toUpperCase();
+  const normalizeCode = (l, fallback = 'en') => {
+    if (!l) return fallback;
+    const clean = l.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '');
+    const map = { spanish: 'es', french: 'fr', german: 'de', japanese: 'ja', thai: 'th', english: 'en', hindi: 'hi' };
+    return map[clean] || (clean.length === 2 ? clean : fallback);
+  };
+  const baseLangCode = normalizeCode(savedUser.nativeLanguage, 'en');
+  const targetLangCode = normalizeCode(savedUser.targetLanguage, 'es');
+  const isBeginner = ['A1', 'A2', 'B1'].includes(userCefr);
+  const adaptiveReadingLang = isBeginner ? baseLangCode : targetLangCode;
+  const adaptiveTranslationDest = isBeginner ? targetLangCode : baseLangCode;
+
   // Word Intelligence State
-  const [targetLang, setTargetLang] = useState('hi');
+  const [targetLang, setTargetLang] = useState(adaptiveTranslationDest);
   const [selectedWord, setSelectedWord] = useState('');
   const [contextSentence, setContextSentence] = useState('');
   const [translation, setTranslation] = useState('');
@@ -96,7 +111,7 @@ export default function Articles() {
     setLoading(true);
     setError(false);
     setOffset(0);
-    fetchFeed(0, 20, selectedCategory)
+    fetchFeed(0, 20, selectedCategory, adaptiveReadingLang)
       .then((data) => {
         if (!isMounted) return;
         const safeData = data?.articles || [];
@@ -115,13 +130,13 @@ export default function Articles() {
     return () => {
       isMounted = false;
     };
-  }, [selectedCategory]);
+  }, [selectedCategory, adaptiveReadingLang]);
 
   const loadMoreArticles = useCallback(() => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     const nextOffset = articles.length;
-    fetchFeed(nextOffset, 20, selectedCategory)
+    fetchFeed(nextOffset, 20, selectedCategory, adaptiveReadingLang)
       .then((data) => {
         const newArticles = data?.articles || [];
         if (newArticles.length === 0) {
@@ -218,23 +233,38 @@ export default function Articles() {
     setWordDetails(null);
     setTranslation('');
 
-    const cleanWord = selectedText.trim().replace(/[^a-zA-Z]/g, '').toLowerCase();
+    const isMultiWord = selectedText.trim().includes(' ');
+    const cleanWord = isMultiWord ? selectedText.trim() : selectedText.trim().replace(/[^a-zA-Z]/g, '').toLowerCase();
     if (!cleanWord) {
       setDetailsLoading(false);
       return;
     }
 
-    const contextAnalysis = analyzeWordContext(cleanWord, sentence);
+    const contextAnalysis = !isMultiWord ? analyzeWordContext(cleanWord, sentence) : { pos: 'sentence', lemma: cleanWord };
     const detectedPOS = contextAnalysis.pos;
-    const lookupWord = contextAnalysis.lemma;
+    const lookupWord = contextAnalysis.lemma || cleanWord;
 
     try {
-      const translationPromise = fetch(
-        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${langCode}&dt=t&q=${encodeURIComponent(lookupWord)}`,
-        { signal }
-      ).then(res => res.json()).then(data => data[0]?.[0]?.[0]).catch(() => lookupWord);
+      const translationPromise = fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          texts: [lookupWord],
+          source: adaptiveReadingLang,
+          target: langCode || adaptiveTranslationDest
+        }),
+        signal
+      })
+      .then(res => res.json())
+      .then(data => data.translations?.[0] || lookupWord)
+      .catch(() => {
+        return fetch(
+          `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${adaptiveReadingLang}&tl=${langCode || adaptiveTranslationDest}&dt=t&q=${encodeURIComponent(lookupWord)}`,
+          { signal }
+        ).then(res => res.json()).then(data => data[0]?.[0]?.[0]).catch(() => lookupWord);
+      });
 
-      const conceptsPromise = fetchDatamuseConcepts(lookupWord, signal);
+      const conceptsPromise = !isMultiWord ? fetchDatamuseConcepts(lookupWord, signal) : Promise.resolve([]);
 
       const [translatedText, semanticConcepts] = await Promise.all([translationPromise, conceptsPromise]);
 
@@ -331,12 +361,24 @@ export default function Articles() {
     }
   };
 
-  const handleWordSelect = (word, sentence = '') => {
+  const handleWordSelect = useCallback((word, sentence = '') => {
     setSelectedWord(word);
     setContextSentence(sentence);
     setShowOverlay(true);
     fetchWordIntelligence(word, targetLang, sentence);
-  };
+  }, [targetLang]);
+
+  useEffect(() => {
+    const handleMouseUp = () => {
+      const selection = window.getSelection();
+      const text = selection?.toString()?.trim();
+      if (text && text.split(/\s+/).length >= 2 && text.length > 5) {
+        handleWordSelect(text, text);
+      }
+    };
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => document.removeEventListener('mouseup', handleMouseUp);
+  }, [handleWordSelect]);
 
   const handleLangChange = (e) => {
     const newLang = e.target.value;
@@ -449,6 +491,40 @@ export default function Articles() {
                 {cat.label}
               </button>
             ))}
+          </div>
+
+          {/* Adaptive CEFR Learning Mode Banner */}
+          <div style={{
+            marginBottom: '0.85rem',
+            padding: '0.5rem 0.85rem',
+            borderRadius: '10px',
+            background: 'rgba(128, 0, 32, 0.08)',
+            border: '1px solid rgba(128, 0, 32, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.8rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontWeight: 700, color: '#800020' }}>
+                {isBeginner ? 'Mode A (A1–B1)' : 'Mode B (B2–C2)'}
+              </span>
+              <span style={{ color: '#475569' }}>
+                {isBeginner
+                  ? `Reading in Native (${adaptiveReadingLang.toUpperCase()}) ➔ Tap/Select for Target (${adaptiveTranslationDest.toUpperCase()})`
+                  : `Reading in Target (${adaptiveReadingLang.toUpperCase()}) ➔ Tap/Select for Native (${adaptiveTranslationDest.toUpperCase()})`}
+              </span>
+            </div>
+            <span style={{
+              background: '#800020',
+              color: '#fff',
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.75rem'
+            }}>
+              {userCefr}
+            </span>
           </div>
 
           {(translating || unavailable) && targetLanguage !== 'en' && (

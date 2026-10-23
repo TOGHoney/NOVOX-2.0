@@ -19,8 +19,12 @@ public final class FeedViewModel: ObservableObject {
     public private(set) var currentLanguageCode: String = "es"
     
     public init() {
-        let storedLang = UserDefaults.standard.string(forKey: "selected_target_language") ?? "Spanish"
-        self.currentLanguageCode = Constants.languageCode(for: storedLang)
+        let cefr = UserDefaults.standard.string(forKey: "selected_cefr_level") ?? "B1"
+        let isBeginner = cefr.hasPrefix("A1") || cefr.hasPrefix("A2") || cefr.hasPrefix("B1")
+        let native = UserDefaults.standard.string(forKey: "selected_native_language") ?? "English"
+        let target = UserDefaults.standard.string(forKey: "selected_target_language") ?? "Spanish"
+        let readingLang = isBeginner ? native : target
+        self.currentLanguageCode = Constants.languageCode(for: readingLang)
         Task {
             await fetchFeed()
         }
@@ -40,12 +44,9 @@ public final class FeedViewModel: ObservableObject {
     
     // MARK: - Feed Fetching
     
-    public func fetchFeed(targetLanguage: String? = nil) async {
-        if let lang = targetLanguage {
-            self.currentLanguageCode = Constants.languageCode(for: lang)
-        } else {
-            let storedLang = UserDefaults.standard.string(forKey: "selected_target_language") ?? "Spanish"
-            self.currentLanguageCode = Constants.languageCode(for: storedLang)
+    public func fetchFeed(readingLanguageCode: String? = nil) async {
+        if let code = readingLanguageCode {
+            self.currentLanguageCode = code
         }
         
         isLoading = true
@@ -66,11 +67,15 @@ public final class FeedViewModel: ObservableObject {
         }
     }
     
+    public func updateAdaptiveReadingLanguageIfNeeded(_ code: String) async {
+        if code != currentLanguageCode {
+            await fetchFeed(readingLanguageCode: code)
+        }
+    }
+    
     public func updateLanguageIfNeeded(_ language: String) async {
         let code = Constants.languageCode(for: language)
-        if code != currentLanguageCode {
-            await fetchFeed(targetLanguage: language)
-        }
+        await updateAdaptiveReadingLanguageIfNeeded(code)
     }
     
     public func loadMoreIfNeeded(currentArticle: Article) async {

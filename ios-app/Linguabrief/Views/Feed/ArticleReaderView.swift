@@ -4,26 +4,68 @@ import SwiftUI
 public struct ArticleReaderView: View {
     public let article: Article
     public let targetLanguageCode: String
+    public let readingLanguageCode: String?
+    public let destinationLanguageCode: String?
     
     @EnvironmentObject private var authVM: AuthViewModel
     @StateObject private var detailVM: ArticleDetailViewModel
     @StateObject private var wordIntelVM = WordIntelligenceViewModel()
     @State private var showCommentsSheet: Bool = false
     
-    public init(article: Article, targetLanguageCode: String = "es") {
+    public init(
+        article: Article,
+        targetLanguageCode: String = "es",
+        readingLanguageCode: String? = nil,
+        destinationLanguageCode: String? = nil
+    ) {
         self.article = article
         self.targetLanguageCode = targetLanguageCode
+        self.readingLanguageCode = readingLanguageCode
+        self.destinationLanguageCode = destinationLanguageCode
         _detailVM = StateObject(wrappedValue: ArticleDetailViewModel(article: article))
     }
     
-    private var learningLanguageName: String {
-        let code = Constants.languageCode(for: targetLanguageCode)
-        return Constants.targetLanguages.first(where: { $0.code == code })?.name ?? "Learning Language"
+    private var effectiveReadingLangCode: String {
+        readingLanguageCode ?? authVM.readingLanguageCode
+    }
+    
+    private var effectiveDestLangCode: String {
+        destinationLanguageCode ?? authVM.translationDestinationLanguageCode
+    }
+    
+    private var destinationLanguageName: String {
+        Constants.targetLanguages.first(where: { $0.code == effectiveDestLangCode })?.name
+            ?? Constants.nativeLanguages.first(where: { $0.code == effectiveDestLangCode })?.name
+            ?? "Learning Language"
     }
     
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                
+                // Adaptive Mode Indicator Banner
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.caption.bold())
+                        .foregroundColor(Constants.Colors.brandBurgundy)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(authVM.adaptiveModeTitle)
+                            .font(.caption2.bold())
+                            .foregroundColor(Constants.Colors.brandBurgundy)
+                        Text(authVM.adaptiveModeDescription)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    CEFRBadge(authVM.cefrLevel)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Constants.Colors.brandBurgundy.opacity(0.08))
+                .cornerRadius(10)
                 
                 // Article Title (Original or Translated)
                 Text(detailVM.showTranslation ? (detailVM.translatedTitle ?? article.title) : (article.originalTitle ?? article.title))
@@ -36,10 +78,10 @@ public struct ArticleReaderView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "globe")
                             .font(.caption.bold())
-                        Text("Translated into \(learningLanguageName)")
+                        Text("Translated into \(destinationLanguageName)")
                             .font(.caption.bold())
                         Spacer()
-                        Button("View Original (EN)") {
+                        Button("View Original") {
                             detailVM.showTranslation = false
                         }
                         .font(.caption.bold())
@@ -49,25 +91,6 @@ public struct ArticleReaderView: View {
                     .padding(.vertical, 8)
                     .background(Constants.Colors.brandBurgundy.opacity(0.08))
                     .foregroundColor(Constants.Colors.brandBurgundy)
-                    .cornerRadius(8)
-                } else if article.originalTitle != nil {
-                    HStack(spacing: 6) {
-                        Image(systemName: "character.book.closed")
-                            .font(.caption.bold())
-                        Text("Showing Original English")
-                            .font(.caption.bold())
-                        Spacer()
-                        Button("Translate to \(learningLanguageName)") {
-                            let langCode = Constants.languageCode(for: targetLanguageCode)
-                            Task { await detailVM.translateArticle(to: langCode, force: true) }
-                        }
-                        .font(.caption.bold())
-                        .foregroundColor(Constants.Colors.brandBurgundy)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(.systemGray6))
-                    .foregroundColor(.secondary)
                     .cornerRadius(8)
                 }
                 
@@ -118,7 +141,7 @@ public struct ArticleReaderView: View {
                             Image(systemName: "sparkles")
                                 .font(.caption.bold())
                                 .foregroundColor(Constants.Colors.goldAccent)
-                            Text("AI SUMMARY")
+                            Text("AI SUMMARY (\(authVM.readingLanguage.uppercased()))")
                                 .font(.caption.bold())
                                 .foregroundColor(.secondary)
                         }
@@ -137,86 +160,101 @@ public struct ArticleReaderView: View {
                 // Body Content & Interactive Word Selection
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
-                        Text("TAP ANY WORD FOR INTELLIGENCE & DEFINITION:")
+                        Text("TAP ANY WORD OR SELECT A SENTENCE TO TRANSLATE:")
                             .font(.caption2.bold())
                             .foregroundColor(.secondary)
                         Spacer()
                     }
                     
                     if detailVM.showTranslation, let translated = detailVM.translatedContent {
-                        // Render translated text
-                        InteractiveTextView(text: translated) { word, sentence in
-                            Task {
-                                await wordIntelVM.analyzeWord(word, inSentence: sentence, targetLanguageCode: targetLanguageCode)
-                            }
-                        }
-                        
-                        // If Japanese romaji is available, render romaji pronunciation section
-                        if let romaji = detailVM.romajiContent {
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "textformat")
-                                        .font(.caption.bold())
-                                    Text("ROMAJI TRANSLITERATION")
-                                        .font(.caption.bold())
+                        InteractiveTextView(
+                            text: translated,
+                            languageCode: effectiveDestLangCode,
+                            onWordTapped: { word, sentence in
+                                Task {
+                                    await wordIntelVM.analyzeWord(
+                                        word,
+                                        inSentence: sentence,
+                                        baseLanguageCode: authVM.nativeLanguage,
+                                        targetLanguageCode: authVM.targetLanguage,
+                                        cefrLevel: authVM.cefrLevel
+                                    )
                                 }
-                                .foregroundColor(Constants.Colors.goldAccent)
-                                
-                                Text(romaji)
-                                    .font(.system(size: 14, design: .monospaced))
-                                    .foregroundColor(.secondary)
-                                    .lineSpacing(4)
+                            },
+                            onTextSelected: { selectedSentence in
+                                Task {
+                                    await wordIntelVM.analyzeSentence(
+                                        selectedSentence,
+                                        baseLanguageCode: authVM.nativeLanguage,
+                                        targetLanguageCode: authVM.targetLanguage,
+                                        cefrLevel: authVM.cefrLevel
+                                    )
+                                }
                             }
-                            .padding()
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(12)
-                        }
+                        )
                     } else if detailVM.isExtracting || detailVM.isTranslating {
                         HStack(spacing: 10) {
                             ProgressView()
-                            Text(detailVM.isExtracting ? "Retrieving full article..." : "Translating into \(learningLanguageName)...")
+                            Text(detailVM.isExtracting ? "Retrieving full article..." : "Translating into \(destinationLanguageName)...")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                         .padding(.vertical, 20)
                     } else if let extracted = detailVM.extractedArticle {
-                        // Render full extracted text
-                        InteractiveTextView(text: extracted.content) { word, sentence in
-                            Task {
-                                await wordIntelVM.analyzeWord(word, inSentence: sentence, targetLanguageCode: targetLanguageCode)
+                        InteractiveTextView(
+                            text: extracted.content,
+                            languageCode: effectiveReadingLangCode,
+                            onWordTapped: { word, sentence in
+                                Task {
+                                    await wordIntelVM.analyzeWord(
+                                        word,
+                                        inSentence: sentence,
+                                        baseLanguageCode: authVM.nativeLanguage,
+                                        targetLanguageCode: authVM.targetLanguage,
+                                        cefrLevel: authVM.cefrLevel
+                                    )
+                                }
+                            },
+                            onTextSelected: { selectedSentence in
+                                Task {
+                                    await wordIntelVM.analyzeSentence(
+                                        selectedSentence,
+                                        baseLanguageCode: authVM.nativeLanguage,
+                                        targetLanguageCode: authVM.targetLanguage,
+                                        cefrLevel: authVM.cefrLevel
+                                    )
+                                }
                             }
-                        }
-                        
-                        // Also render discrete tap chips for convenience
-                        Divider().padding(.vertical, 10)
-                        Text("Word Tokens:")
-                            .font(.caption2.bold())
-                            .foregroundColor(.secondary)
-                        WordButtonsView(sentence: extracted.content.prefix(1000).description) { word, sentence in
-                            Task {
-                                await wordIntelVM.analyzeWord(word, inSentence: sentence, targetLanguageCode: targetLanguageCode)
-                            }
-                        }
+                        )
                     } else {
-                        // Render available snippet content
                         let bodyText = (article.content?.isEmpty == false ? article.content : article.description) ?? article.title
-                        
-                        InteractiveTextView(text: bodyText) { word, sentence in
-                            Task {
-                                await wordIntelVM.analyzeWord(word, inSentence: sentence, targetLanguageCode: targetLanguageCode)
+                        InteractiveTextView(
+                            text: bodyText,
+                            languageCode: effectiveReadingLangCode,
+                            onWordTapped: { word, sentence in
+                                Task {
+                                    await wordIntelVM.analyzeWord(
+                                        word,
+                                        inSentence: sentence,
+                                        baseLanguageCode: authVM.nativeLanguage,
+                                        targetLanguageCode: authVM.targetLanguage,
+                                        cefrLevel: authVM.cefrLevel
+                                    )
+                                }
+                            },
+                            onTextSelected: { selectedSentence in
+                                Task {
+                                    await wordIntelVM.analyzeSentence(
+                                        selectedSentence,
+                                        baseLanguageCode: authVM.nativeLanguage,
+                                        targetLanguageCode: authVM.targetLanguage,
+                                        cefrLevel: authVM.cefrLevel
+                                    )
+                                }
                             }
-                        }
-                        
-                        Divider().padding(.vertical, 10)
-                        Text("Word Tokens:")
-                            .font(.caption2.bold())
-                            .foregroundColor(.secondary)
-                        WordButtonsView(sentence: bodyText) { word, sentence in
-                            Task {
-                                await wordIntelVM.analyzeWord(word, inSentence: sentence, targetLanguageCode: targetLanguageCode)
-                            }
-                        }
+                        )
                     }
+
                 }
                 
                 // Link to Open Original Source in Safari
@@ -236,8 +274,7 @@ public struct ArticleReaderView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 14) {
                     Button(action: {
-                        let targetCode = Constants.languageCode(for: targetLanguageCode)
-                        Task { await detailVM.translateArticle(to: targetCode) }
+                        Task { await detailVM.translateArticle(to: effectiveDestLangCode) }
                     }) {
                         HStack(spacing: 4) {
                             if detailVM.isTranslating {
@@ -263,15 +300,24 @@ public struct ArticleReaderView: View {
             }
         }
         .sheet(isPresented: $wordIntelVM.showSheet) {
-            WordIntelligenceSheet(viewModel: wordIntelVM, targetLanguageCode: targetLanguageCode)
+            WordIntelligenceSheet(
+                viewModel: wordIntelVM,
+                targetLanguageCode: authVM.targetLanguage,
+                baseLanguageCode: authVM.nativeLanguage
+            )
         }
+
         .sheet(isPresented: $showCommentsSheet) {
             CommentsSheetView(detailVM: detailVM)
         }
         .task {
             await detailVM.checkBookmarkStatus()
-            let langCode = Constants.languageCode(for: targetLanguageCode)
-            await detailVM.loadFullText(andTranslateTo: langCode)
+            if effectiveReadingLangCode != "en" {
+                await detailVM.loadFullText(andTranslateTo: effectiveReadingLangCode)
+            } else {
+                await detailVM.loadFullText()
+            }
         }
     }
 }
+

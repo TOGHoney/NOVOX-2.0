@@ -70,6 +70,11 @@ public struct Endpoint: Sendable {
         Endpoint(path: "/api/translate", method: .post, requiresAuth: false)
     }
 
+    public static func wordIntelligence() -> Endpoint {
+        Endpoint(path: "/api/translate/word-intelligence", method: .post, requiresAuth: false)
+    }
+
+
     // MARK: - Vocabulary & Decks Endpoints
     public static func savedWords() -> Endpoint {
         Endpoint(path: "/api/saved-words", method: .get, requiresAuth: true)

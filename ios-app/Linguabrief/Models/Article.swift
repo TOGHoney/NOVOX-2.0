@@ -101,3 +101,36 @@ public struct TranslationResponse: Codable, Sendable {
     public let translations: [String]
     public let serviceUrl: String?
 }
+
+/// Request payload for `POST /api/translate/word-intelligence`
+public struct WordIntelligenceRequest: Codable, Sendable {
+    public let expression: String
+    public let sentence: String?
+    public let baseLanguage: String
+    public let targetLanguage: String
+    public let cefrLevel: String
+    
+    public init(expression: String, sentence: String? = nil, baseLanguage: String, targetLanguage: String, cefrLevel: String) {
+        self.expression = expression
+        self.sentence = sentence
+        self.baseLanguage = baseLanguage
+        self.targetLanguage = targetLanguage
+        self.cefrLevel = cefrLevel
+    }
+}
+
+/// Response payload from `POST /api/translate/word-intelligence`
+public struct WordIntelligenceBackendResponse: Codable, Sendable {
+    public let originalExpression: String
+    public let translation: String
+    public let targetExpression: String?
+    public let pronunciationGuide: String?
+    public let contextualMeaning: String?
+    public let dictionaryDefinition: String?
+    public let partOfSpeech: String?
+    public let detectedCefr: String?
+    public let isSentence: Bool?
+    public let targetLanguageCode: String?
+    public let baseLanguageCode: String?
+}
+

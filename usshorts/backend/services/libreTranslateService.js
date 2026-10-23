@@ -19,16 +19,21 @@ function setCache(key, data) {
 
 async function translateViaGoogle(text, target, source = 'auto') {
     if (!text || typeof text !== 'string' || !text.trim()) return '';
-    try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(source)}&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Google translate HTTP ${res.status}`);
-        const data = await res.json();
-        if (Array.isArray(data) && Array.isArray(data[0])) {
-            return data[0].map(part => part[0] || '').join('');
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(source)}&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
+            const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)' } });
+            if (!res.ok) throw new Error(`Google translate HTTP ${res.status}`);
+            const data = await res.json();
+            if (Array.isArray(data) && Array.isArray(data[0])) {
+                const combined = data[0].map(part => part[0] || '').join('');
+                if (combined.trim()) return combined;
+            }
+        } catch (e) {
+            if (attempt === 1) {
+                console.error('[Translation Fallback Error]:', e.message);
+            }
         }
-    } catch (e) {
-        console.error('[Translation Fallback Error]:', e.message);
     }
     return text;
 }
@@ -87,16 +92,27 @@ async function translateTexts(texts, target, source = 'auto') {
             }
         }
 
-        // 2. High-availability fallback via Google Translate API
+        // 2. High-availability fallback via Google Translate API with chunking to avoid 429
         if (!translatedList) {
-            translatedList = await Promise.all(
-                missing.map(item => translateViaGoogle(item.text, target, source))
-            );
+            const chunkSize = 5;
+            translatedList = [];
+            for (let c = 0; c < missing.length; c += chunkSize) {
+                const chunk = missing.slice(c, c + chunkSize);
+                const chunkResults = await Promise.all(
+                    chunk.map(item => translateViaGoogle(item.text, target, source))
+                );
+                translatedList.push(...chunkResults);
+                if (c + chunkSize < missing.length) {
+                    await new Promise(resolve => setTimeout(resolve, 60));
+                }
+            }
         }
 
         for (let j = 0; j < missing.length; j++) {
             const translated = translatedList[j] ?? missing[j].text;
-            setCache(missing[j].cacheKey, translated);
+            if (translated && translated !== missing[j].text) {
+                setCache(missing[j].cacheKey, translated);
+            }
             results[missing[j].index] = translated;
         }
     }

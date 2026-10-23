@@ -4,6 +4,7 @@ import SwiftUI
 public struct FeedView: View {
     @StateObject private var feedVM = FeedViewModel()
     @EnvironmentObject private var authVM: AuthViewModel
+    @State private var showNewsShorts: Bool = false
     
     public init() {}
     
@@ -54,12 +55,37 @@ public struct FeedView: View {
                     .padding(.vertical, 10)
                 }
                 
+                // Adaptive CEFR Mode Pill
+                HStack(spacing: 8) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "sparkles")
+                            .font(.caption2.bold())
+                            .foregroundColor(Constants.Colors.brandBurgundy)
+                        Text(authVM.adaptiveModeTitle)
+                            .font(.caption2.bold())
+                            .foregroundColor(Constants.Colors.brandBurgundy)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Constants.Colors.brandBurgundy.opacity(0.12))
+                    .cornerRadius(6)
+                    
+                    Text(authVM.adaptiveModeDescription)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 6)
+                
                 // Feed Content
                 if feedVM.isLoading && feedVM.articles.isEmpty {
                     VStack(spacing: 12) {
                         ProgressView()
                             .scaleEffect(1.2)
-                        Text("Curating your language news feed...")
+                        Text("Curating news in \(authVM.readingLanguage)...")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -78,7 +104,7 @@ public struct FeedView: View {
                             .padding(.horizontal, 32)
                         
                         Button("Retry") {
-                            Task { await feedVM.fetchFeed() }
+                            Task { await feedVM.fetchFeed(readingLanguageCode: authVM.readingLanguageCode) }
                         }
                         .burgundyButtonStyle()
                         .frame(width: 140)
@@ -100,7 +126,12 @@ public struct FeedView: View {
                     ScrollView {
                         LazyVStack(spacing: 14) {
                             ForEach(feedVM.filteredArticles) { article in
-                                NavigationLink(destination: ArticleReaderView(article: article, targetLanguageCode: Constants.languageCode(for: authVM.targetLanguage))) {
+                                NavigationLink(destination: ArticleReaderView(
+                                    article: article,
+                                    targetLanguageCode: authVM.translationDestinationLanguageCode,
+                                    readingLanguageCode: authVM.readingLanguageCode,
+                                    destinationLanguageCode: authVM.translationDestinationLanguageCode
+                                )) {
                                     ArticleCardView(
                                         article: article,
                                         isSummaryLoading: feedVM.summaryLoadingMap[article.id] ?? false,
@@ -129,14 +160,29 @@ public struct FeedView: View {
                         .padding(.bottom, 20)
                     }
                     .refreshable {
-                        await feedVM.fetchFeed(targetLanguage: authVM.targetLanguage)
+                        await feedVM.fetchFeed(readingLanguageCode: authVM.readingLanguageCode)
                     }
                 }
             }
             .navigationTitle("Global News")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 10) {
+                        Button(action: { showNewsShorts = true }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "play.rectangle.on.rectangle.fill")
+                                    .font(.system(size: 15, weight: .semibold))
+                                Text("Shorts")
+                                    .font(.caption.bold())
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(Constants.Colors.brandBurgundy)
+                            .cornerRadius(8)
+                        }
+                        .accessibilityLabel("News Shorts")
+                        
                         CEFRBadge(authVM.cefrLevel)
                         
                         if let lang = Constants.targetLanguages.first(where: { $0.name == authVM.targetLanguage || $0.code == authVM.targetLanguage }) {
@@ -146,14 +192,28 @@ public struct FeedView: View {
                     }
                 }
             }
-            .task {
-                await feedVM.updateLanguageIfNeeded(authVM.targetLanguage)
+            .fullScreenCover(isPresented: $showNewsShorts) {
+                NewsShortsView()
             }
-            .onChange(of: authVM.targetLanguage) { newLang in
+            .task {
+                await feedVM.updateAdaptiveReadingLanguageIfNeeded(authVM.readingLanguageCode)
+            }
+            .onChange(of: authVM.cefrLevel) { _ in
                 Task {
-                    await feedVM.updateLanguageIfNeeded(newLang)
+                    await feedVM.updateAdaptiveReadingLanguageIfNeeded(authVM.readingLanguageCode)
+                }
+            }
+            .onChange(of: authVM.targetLanguage) { _ in
+                Task {
+                    await feedVM.updateAdaptiveReadingLanguageIfNeeded(authVM.readingLanguageCode)
+                }
+            }
+            .onChange(of: authVM.nativeLanguage) { _ in
+                Task {
+                    await feedVM.updateAdaptiveReadingLanguageIfNeeded(authVM.readingLanguageCode)
                 }
             }
         }
     }
 }
+

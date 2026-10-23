@@ -16,6 +16,48 @@ public final class AuthViewModel: ObservableObject {
     @AppStorage("selected_cefr_level") public var cefrLevel: String = "B1"
     @AppStorage("selected_native_language") public var nativeLanguage: String = "English"
     
+    // MARK: - Adaptive CEFR Learning Mode
+    
+    /// Returns true if user's proficiency level is Beginner or Intermediate (A1, A2, B1)
+    public var isBeginnerOrIntermediate: Bool {
+        let level = cefrLevel.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        return level.hasPrefix("A1") || level.hasPrefix("A2") || level.hasPrefix("B1")
+    }
+    
+    /// Reading Language:
+    /// - Mode A (A1, A2, B1): News displayed in user's base/native language
+    /// - Mode B (B2, C1, C2): News displayed in target/learning language
+    public var readingLanguage: String {
+        isBeginnerOrIntermediate ? nativeLanguage : targetLanguage
+    }
+    
+    public var readingLanguageCode: String {
+        Constants.languageCode(for: readingLanguage)
+    }
+    
+    /// Translation Destination Language:
+    /// - Mode A (A1, A2, B1): Tap/select translates into target/learning language
+    /// - Mode B (B2, C1, C2): Tap/select translates into base/native language
+    public var translationDestinationLanguage: String {
+        isBeginnerOrIntermediate ? targetLanguage : nativeLanguage
+    }
+    
+    public var translationDestinationLanguageCode: String {
+        Constants.languageCode(for: translationDestinationLanguage)
+    }
+    
+    public var adaptiveModeTitle: String {
+        isBeginnerOrIntermediate ? "Mode A (A1–B1)" : "Mode B (B2–C2)"
+    }
+    
+    public var adaptiveModeDescription: String {
+        if isBeginnerOrIntermediate {
+            return "Read in \(nativeLanguage) → Tap/Select for \(targetLanguage)"
+        } else {
+            return "Read in \(targetLanguage) → Tap/Select for \(nativeLanguage)"
+        }
+    }
+    
     public init() {
         checkExistingSession()
     }

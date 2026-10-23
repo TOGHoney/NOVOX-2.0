@@ -33,6 +33,7 @@
 		584B4108206079506701544B /* ContestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21CA3D713FF9ACCAE9CF558D /* ContestViewModel.swift */; };
 		AD5D981991C9A4C6CB86B377 /* DebatesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B612C6C8CDD94F802BB0C83 /* DebatesViewModel.swift */; };
 		61AD401C98B67AF936BF4B35 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12025DF792E516FF1A46088F /* FeedViewModel.swift */; };
+		725480E3874A9564D38DFAFD /* NewsShortsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF5D470E9EFC9D8D6033E88 /* NewsShortsViewModel.swift */; };
 		C4D570946F77168B711F483A /* VocabularyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A895FC2E9F26F8777BE636D /* VocabularyViewModel.swift */; };
 		74A124D977E7401E45729EDF /* WordIntelligenceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA95814D5E49000DB61992A6 /* WordIntelligenceViewModel.swift */; };
 		EE3A1B9D613F73D34A5A54F0 /* LearningProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49581736D58C62C545C467D7 /* LearningProfileSetupView.swift */; };
@@ -48,6 +49,8 @@
 		768C11B49A61365CF3A5B305 /* ArticleReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D038E4DB74EA0683EEBEAA61 /* ArticleReaderView.swift */; };
 		BD721165F4EE740AF6D5B600 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF3680898B5669F8BDBA7400 /* FeedView.swift */; };
 		DF775CFEA220533D5F56F145 /* InteractiveTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA124F8B69A1CED3D28935F /* InteractiveTextView.swift */; };
+		D68637C16BCF1F2CFC511884 /* NewsShortCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23EEB5E9AAD4A8F082BCE06B /* NewsShortCardView.swift */; };
+		C5DEAFEE3ECDB05DE5B40032 /* NewsShortsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 794ACBC09222686ACF989251 /* NewsShortsView.swift */; };
 		154366A65E851FEEB8A8BC92 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF8ED26F039D1FA3C26BAC6 /* MainTabView.swift */; };
 		49EBC66ABDE95B6C9AF46725 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B90F4419AF03B8138C95C242 /* RootView.swift */; };
 		4BFCCE09C1BDAEB1E007548D /* BookmarksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B57D2C4B33FB18C9FE999C93 /* BookmarksListView.swift */; };
@@ -87,6 +90,7 @@
 		21CA3D713FF9ACCAE9CF558D /* ContestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContestViewModel.swift"; sourceTree = "<group>"; };
 		1B612C6C8CDD94F802BB0C83 /* DebatesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebatesViewModel.swift"; sourceTree = "<group>"; };
 		12025DF792E516FF1A46088F /* FeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedViewModel.swift"; sourceTree = "<group>"; };
+		DBF5D470E9EFC9D8D6033E88 /* NewsShortsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsShortsViewModel.swift"; sourceTree = "<group>"; };
 		6A895FC2E9F26F8777BE636D /* VocabularyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VocabularyViewModel.swift"; sourceTree = "<group>"; };
 		CA95814D5E49000DB61992A6 /* WordIntelligenceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WordIntelligenceViewModel.swift"; sourceTree = "<group>"; };
 		49581736D58C62C545C467D7 /* LearningProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LearningProfileSetupView.swift"; sourceTree = "<group>"; };
@@ -102,6 +106,8 @@
 		D038E4DB74EA0683EEBEAA61 /* ArticleReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArticleReaderView.swift"; sourceTree = "<group>"; };
 		AF3680898B5669F8BDBA7400 /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedView.swift"; sourceTree = "<group>"; };
 		9DA124F8B69A1CED3D28935F /* InteractiveTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InteractiveTextView.swift"; sourceTree = "<group>"; };
+		23EEB5E9AAD4A8F082BCE06B /* NewsShortCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsShortCardView.swift"; sourceTree = "<group>"; };
+		794ACBC09222686ACF989251 /* NewsShortsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsShortsView.swift"; sourceTree = "<group>"; };
 		3DF8ED26F039D1FA3C26BAC6 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainTabView.swift"; sourceTree = "<group>"; };
 		B90F4419AF03B8138C95C242 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RootView.swift"; sourceTree = "<group>"; };
 		B57D2C4B33FB18C9FE999C93 /* BookmarksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BookmarksListView.swift"; sourceTree = "<group>"; };
@@ -208,6 +214,7 @@
 				21CA3D713FF9ACCAE9CF558D /* ContestViewModel.swift */,
 				1B612C6C8CDD94F802BB0C83 /* DebatesViewModel.swift */,
 				12025DF792E516FF1A46088F /* FeedViewModel.swift */,
+				DBF5D470E9EFC9D8D6033E88 /* NewsShortsViewModel.swift */,
 				6A895FC2E9F26F8777BE636D /* VocabularyViewModel.swift */,
 				CA95814D5E49000DB61992A6 /* WordIntelligenceViewModel.swift */,
 			);
@@ -266,6 +273,8 @@
 				D038E4DB74EA0683EEBEAA61 /* ArticleReaderView.swift */,
 				AF3680898B5669F8BDBA7400 /* FeedView.swift */,
 				9DA124F8B69A1CED3D28935F /* InteractiveTextView.swift */,
+				23EEB5E9AAD4A8F082BCE06B /* NewsShortCardView.swift */,
+				794ACBC09222686ACF989251 /* NewsShortsView.swift */,
 			);
 			path = "Feed";
 			sourceTree = "<group>";
@@ -437,6 +446,7 @@
 				584B4108206079506701544B /* ContestViewModel.swift in Sources */,
 				AD5D981991C9A4C6CB86B377 /* DebatesViewModel.swift in Sources */,
 				61AD401C98B67AF936BF4B35 /* FeedViewModel.swift in Sources */,
+				725480E3874A9564D38DFAFD /* NewsShortsViewModel.swift in Sources */,
 				C4D570946F77168B711F483A /* VocabularyViewModel.swift in Sources */,
 				74A124D977E7401E45729EDF /* WordIntelligenceViewModel.swift in Sources */,
 				EE3A1B9D613F73D34A5A54F0 /* LearningProfileSetupView.swift in Sources */,
@@ -452,6 +462,8 @@
 				768C11B49A61365CF3A5B305 /* ArticleReaderView.swift in Sources */,
 				BD721165F4EE740AF6D5B600 /* FeedView.swift in Sources */,
 				DF775CFEA220533D5F56F145 /* InteractiveTextView.swift in Sources */,
+				D68637C16BCF1F2CFC511884 /* NewsShortCardView.swift in Sources */,
+				C5DEAFEE3ECDB05DE5B40032 /* NewsShortsView.swift in Sources */,
 				154366A65E851FEEB8A8BC92 /* MainTabView.swift in Sources */,
 				49EBC66ABDE95B6C9AF46725 /* RootView.swift in Sources */,
 				4BFCCE09C1BDAEB1E007548D /* BookmarksListView.swift in Sources */,
@@ -485,7 +497,6 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -505,7 +516,6 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -531,8 +541,6 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.novox.linguabrief;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -558,8 +566,6 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.novox.linguabrief;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
