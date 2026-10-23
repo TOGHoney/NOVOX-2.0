@@ -1,21 +1,71 @@
 const Article = require('../models/Article');
 const { summarizeArticle } = require('../services/geminiService');
 const { fetchAllArticles } = require('../services/articleFetcher');
+const { translateTexts } = require('../services/libreTranslateService');
+const { normalizeLanguage } = require('./translateController');
+
+async function translateArticleBatch(articles, targetLang) {
+    if (!articles || articles.length === 0 || !targetLang || targetLang === 'en') {
+        return articles;
+    }
+
+    const itemsToTranslate = [];
+    const mapping = [];
+
+    articles.forEach((art, artIndex) => {
+        if (art.title && typeof art.title === 'string' && art.title.trim()) {
+            itemsToTranslate.push(art.title);
+            mapping.push({ artIndex, field: 'title' });
+        }
+        if (art.description && typeof art.description === 'string' && art.description.trim()) {
+            itemsToTranslate.push(art.description);
+            mapping.push({ artIndex, field: 'description' });
+        }
+        if (art.aiSummary && typeof art.aiSummary === 'string' && art.aiSummary.trim()) {
+            itemsToTranslate.push(art.aiSummary);
+            mapping.push({ artIndex, field: 'aiSummary' });
+        }
+    });
+
+    if (itemsToTranslate.length === 0) return articles;
+
+    try {
+        const translatedList = await translateTexts(itemsToTranslate, targetLang);
+        mapping.forEach((m, idx) => {
+            const trans = translatedList[idx];
+            if (trans) {
+                if (!articles[m.artIndex].originalTitle && m.field === 'title') {
+                    articles[m.artIndex].originalTitle = articles[m.artIndex].title;
+                }
+                if (!articles[m.artIndex].originalDescription && m.field === 'description') {
+                    articles[m.artIndex].originalDescription = articles[m.artIndex].description;
+                }
+                articles[m.artIndex][m.field] = trans;
+            }
+        });
+    } catch (err) {
+        console.error('[Feed Translation Error]:', err.message);
+    }
+
+    return articles;
+}
 
 async function getFeed(req, res) {
     try {
         const offset = parseInt(req.query.offset) || 0;
         const limit = parseInt(req.query.limit) || 20;
         const topic = req.query.topic;
+        const targetLang = normalizeLanguage(req.query.targetLang || req.query.lang);
 
         if (topic && topic !== 'all') {
-            const articles = await Article.find({ topic })
+            let articles = await Article.find({ topic })
                 .sort({ fetchedAt: -1 })
                 .skip(offset)
                 .limit(limit)
                 .lean();
 
             const total = await Article.countDocuments({ topic });
+            articles = await translateArticleBatch(articles, targetLang);
 
             return res.json({
                 articles,
@@ -51,7 +101,8 @@ async function getFeed(req, res) {
         }
 
         const total = interleaved.length;
-        const page = interleaved.slice(offset, offset + limit);
+        let page = interleaved.slice(offset, offset + limit);
+        page = await translateArticleBatch(page, targetLang);
 
         res.json({
             articles: page,
