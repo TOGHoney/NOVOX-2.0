@@ -1,9 +1,10 @@
 import Foundation
 
-public enum HTTPMethod: String {
+public enum HTTPMethod: String, Sendable {
     case get = "GET"
     case post = "POST"
     case put = "PUT"
+    case patch = "PATCH"
     case delete = "DELETE"
 }
 
@@ -133,6 +134,58 @@ public struct Endpoint: Sendable {
     }
 
     // MARK: - Contests Endpoints
+    public static func contests(status: String? = nil, type: String? = nil, language: String? = nil, difficulty: String? = nil, filter: String? = nil) -> Endpoint {
+        var items: [URLQueryItem] = []
+        if let status = status, !status.isEmpty && status.lowercased() != "all" {
+            items.append(URLQueryItem(name: "status", value: status.lowercased()))
+        }
+        if let type = type, !type.isEmpty && type.lowercased() != "all" {
+            items.append(URLQueryItem(name: "type", value: type))
+        }
+        if let language = language, !language.isEmpty && language.lowercased() != "all" {
+            items.append(URLQueryItem(name: "language", value: language))
+        }
+        if let difficulty = difficulty, !difficulty.isEmpty && difficulty.lowercased() != "all" {
+            items.append(URLQueryItem(name: "difficulty", value: difficulty))
+        }
+        if let filter = filter, !filter.isEmpty {
+            items.append(URLQueryItem(name: "filter", value: filter))
+        }
+        return Endpoint(path: "/api/contests", method: .get, queryItems: items, requiresAuth: true)
+    }
+
+    public static func myContests() -> Endpoint {
+        Endpoint(path: "/api/contests/my", method: .get, requiresAuth: true)
+    }
+
+    public static func contestDetails(id: String) -> Endpoint {
+        Endpoint(path: "/api/contests/\(id)", method: .get, requiresAuth: true)
+    }
+
+    public static func createContest() -> Endpoint {
+        Endpoint(path: "/api/contests/create", method: .post, requiresAuth: true)
+    }
+
+    public static func editContest(id: String) -> Endpoint {
+        Endpoint(path: "/api/contests/\(id)", method: .put, requiresAuth: true)
+    }
+
+    public static func cancelContest(id: String) -> Endpoint {
+        Endpoint(path: "/api/contests/\(id)/cancel", method: .patch, requiresAuth: true)
+    }
+
+    public static func joinContest(id: String) -> Endpoint {
+        Endpoint(path: "/api/contests/\(id)/join", method: .post, requiresAuth: true)
+    }
+
+    public static func leaveContest(id: String) -> Endpoint {
+        Endpoint(path: "/api/contests/\(id)/leave", method: .post, requiresAuth: true)
+    }
+
+    public static func contestParticipants(id: String) -> Endpoint {
+        Endpoint(path: "/api/contests/\(id)/participants", method: .get, requiresAuth: true)
+    }
+
     public static func publicContests() -> Endpoint {
         Endpoint(path: "/api/contests/public", method: .get, requiresAuth: false)
     }

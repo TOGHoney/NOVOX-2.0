@@ -9,7 +9,8 @@ public final class WordIntelligenceViewModel: ObservableObject {
     @Published public var isAnalyzing: Bool = false
     @Published public var isSaved: Bool = false
     @Published public var showSheet: Bool = false
-    @Published public var errorMessage: String? = nil
+    @Published public var errorMessage: String?
+    @Published public var lastError: String? = nil
     
     // Last request context for retry
     private var lastRawExpression: String = ""
@@ -281,12 +282,21 @@ public final class WordIntelligenceViewModel: ObservableObject {
     /// In Mode B: target expression is the original expression.
     public func playPronunciation() {
         guard let result = selectedResult else { return }
+        
         let targetText = result.targetExpression?.isEmpty == false
             ? result.targetExpression!
             : (result.isBeginnerOrIntermediate ? result.translation : result.word)
         
+        guard !targetText.isEmpty else {
+            lastError = "No text available for pronunciation"
+            return
+        }
+        
         let targetLocale = Constants.bcp47(for: result.targetLanguageCode ?? "es")
         SpeechSynthesisService.shared.speak(targetText, languageCode: targetLocale)
+        if let error = SpeechSynthesisService.shared.lastError {
+            lastError = error
+        }
     }
     
     /// Optional: Plays the ORIGINAL expression in its natural language

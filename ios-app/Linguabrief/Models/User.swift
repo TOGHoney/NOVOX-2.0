@@ -14,6 +14,10 @@ public struct User: Codable, Identifiable, Sendable, Hashable {
     public let createdAt: Date?
     public let updatedAt: Date?
 
+    public var isAdmin: Bool {
+        role?.lowercased() == "admin"
+    }
+
     public init(
         id: String,
         username: String,

@@ -11,6 +11,10 @@ public final class AuthViewModel: ObservableObject {
     @Published public var isLoading: Bool = false
     @Published public var errorMessage: String?
     
+    public var isAdmin: Bool {
+        currentUser?.isAdmin ?? false
+    }
+    
     // User preferences
     @AppStorage("selected_target_language") public var targetLanguage: String = "Spanish"
     @AppStorage("selected_cefr_level") public var cefrLevel: String = "B1"

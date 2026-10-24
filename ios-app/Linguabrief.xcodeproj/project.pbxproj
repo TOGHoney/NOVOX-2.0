@@ -42,6 +42,9 @@
 		EE3A1B9D613F73D34A5A54F0 /* LearningProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49581736D58C62C545C467D7 /* LearningProfileSetupView.swift */; };
 		F9A28D67BD3AC0E43E12C3E9 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B11D02DB8225AF0D929CBAC /* LoginView.swift */; };
 		39F2653DA09DC8834F7145F9 /* SignupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED29CF39C8FCE1D14CB36388 /* SignupView.swift */; };
+		F6E904916066DBC0BDE94D93 /* AdminContestParticipantsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78290EE6183C64F228C528C8 /* AdminContestParticipantsView.swift */; };
+		09354392BBA20152A3F8FD00 /* AdminCreateContestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74F3BC0B3895CA4A911A9CA /* AdminCreateContestView.swift */; };
+		F2E1EDE61D74EC3866CFB00D /* ContestDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68A09AD0F4C179F09A243E3 /* ContestDetailView.swift */; };
 		12CA194E1D5B826A2405C079 /* ContestLeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D13299CCAC68D7F77A1629 /* ContestLeaderboardView.swift */; };
 		9AD2DFAC65D433D2667B91FC /* ContestListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CA7009154090A726E5D725F /* ContestListView.swift */; };
 		3EEC292A53B8776849A53D58 /* ContestRunnerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E36E523B131C0F35F54D0A /* ContestRunnerView.swift */; };
@@ -105,6 +108,9 @@
 		49581736D58C62C545C467D7 /* LearningProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LearningProfileSetupView.swift"; sourceTree = "<group>"; };
 		3B11D02DB8225AF0D929CBAC /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoginView.swift"; sourceTree = "<group>"; };
 		ED29CF39C8FCE1D14CB36388 /* SignupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SignupView.swift"; sourceTree = "<group>"; };
+		78290EE6183C64F228C528C8 /* AdminContestParticipantsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdminContestParticipantsView.swift"; sourceTree = "<group>"; };
+		B74F3BC0B3895CA4A911A9CA /* AdminCreateContestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdminCreateContestView.swift"; sourceTree = "<group>"; };
+		F68A09AD0F4C179F09A243E3 /* ContestDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContestDetailView.swift"; sourceTree = "<group>"; };
 		07D13299CCAC68D7F77A1629 /* ContestLeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContestLeaderboardView.swift"; sourceTree = "<group>"; };
 		6CA7009154090A726E5D725F /* ContestListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContestListView.swift"; sourceTree = "<group>"; };
 		21E36E523B131C0F35F54D0A /* ContestRunnerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContestRunnerView.swift"; sourceTree = "<group>"; };
@@ -263,6 +269,9 @@
 		7086514E5156F6374D346F60 /* Contests */ = {
 			isa = PBXGroup;
 			children = (
+				78290EE6183C64F228C528C8 /* AdminContestParticipantsView.swift */,
+				B74F3BC0B3895CA4A911A9CA /* AdminCreateContestView.swift */,
+				F68A09AD0F4C179F09A243E3 /* ContestDetailView.swift */,
 				07D13299CCAC68D7F77A1629 /* ContestLeaderboardView.swift */,
 				6CA7009154090A726E5D725F /* ContestListView.swift */,
 				21E36E523B131C0F35F54D0A /* ContestRunnerView.swift */,
@@ -473,6 +482,9 @@
 				EE3A1B9D613F73D34A5A54F0 /* LearningProfileSetupView.swift in Sources */,
 				F9A28D67BD3AC0E43E12C3E9 /* LoginView.swift in Sources */,
 				39F2653DA09DC8834F7145F9 /* SignupView.swift in Sources */,
+				F6E904916066DBC0BDE94D93 /* AdminContestParticipantsView.swift in Sources */,
+				09354392BBA20152A3F8FD00 /* AdminCreateContestView.swift in Sources */,
+				F2E1EDE61D74EC3866CFB00D /* ContestDetailView.swift in Sources */,
 				12CA194E1D5B826A2405C079 /* ContestLeaderboardView.swift in Sources */,
 				9AD2DFAC65D433D2667B91FC /* ContestListView.swift in Sources */,
 				3EEC292A53B8776849A53D58 /* ContestRunnerView.swift in Sources */,

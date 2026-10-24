@@ -45,6 +45,11 @@ exports.updateProfile = async (req, res) => {
         }
 
         // Native language is permanently fixed to English
+        // Admin can update user role
+        if (req.user.role === 'admin' && role) {
+            user.role = role;
+        }
+
         user.nativeLanguage = "English";
 
         if (profileCompleted !== undefined) {

@@ -22,6 +22,7 @@ public final class NewsShortsViewModel: ObservableObject {
     @Published public var isSentenceTranslation: Bool = false
     @Published public var isTranslating: Bool = false
     @Published public var translationError: String?
+    @Published public var lastError: String?
     @Published public var showTranslationSheet: Bool = false
     @Published public var isSavedToVocabulary: Bool = false
     
@@ -222,9 +223,15 @@ public final class NewsShortsViewModel: ObservableObject {
     public func playPronunciation() {
         // Speaks the target-language expression using the target-language locale
         let textToSpeak = targetExpression.isEmpty ? translatedText : targetExpression
-        guard !textToSpeak.isEmpty else { return }
+        guard !textToSpeak.isEmpty else {
+            lastError = "No text available for pronunciation"
+            return
+        }
         let voiceCode = Constants.bcp47(for: targetLanguageCode)
         SpeechSynthesisService.shared.speak(textToSpeak, languageCode: voiceCode)
+        if let error = SpeechSynthesisService.shared.lastError {
+            lastError = error
+        }
     }
     
     public func playOriginalPronunciation() {

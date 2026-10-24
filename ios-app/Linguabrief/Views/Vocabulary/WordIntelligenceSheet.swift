@@ -7,6 +7,7 @@ import SwiftUI
 /// - Contextual explanation is ALWAYS displayed in the user's base language.
 public struct WordIntelligenceSheet: View {
     @ObservedObject public var viewModel: WordIntelligenceViewModel
+    @ObservedObject private var speechService = SpeechSynthesisService.shared
     public let targetLanguageCode: String
     public let baseLanguageCode: String
     
@@ -172,17 +173,21 @@ public struct WordIntelligenceSheet: View {
                                     Spacer()
                                     
                                     Button(action: {
-                                        viewModel.playPronunciation()
+                                        if speechService.isSpeaking {
+                                            speechService.stop()
+                                        } else {
+                                            viewModel.playPronunciation()
+                                        }
                                     }) {
                                         HStack(spacing: 6) {
-                                            Image(systemName: "speaker.wave.2.fill")
-                                            Text("Listen")
+                                            Image(systemName: speechService.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2.fill")
+                                            Text(speechService.isSpeaking ? "Playing" : "Listen")
                                                 .font(.caption.bold())
                                         }
                                         .foregroundColor(.white)
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 8)
-                                        .background(Constants.Colors.brandBurgundy)
+                                        .background(speechService.isSpeaking ? Constants.Colors.goldAccent : Constants.Colors.brandBurgundy)
                                         .cornerRadius(8)
                                     }
                                 }
