@@ -225,14 +225,17 @@ public struct AuthResponse: Codable, Sendable {
 }
 
 /// Request body for profile updates (`PUT /api/users/profile`)
+/// Native language is fixed to English on the client side.
 public struct ProfileUpdateRequest: Codable, Sendable {
     public let targetLanguage: String?
     public let cefrLevel: String?
+    public let nativeLanguage: String?
     public let profileCompleted: Bool?
 
-    public init(targetLanguage: String?, cefrLevel: String?, profileCompleted: Bool? = true) {
+    public init(targetLanguage: String?, cefrLevel: String?, nativeLanguage: String? = "English", profileCompleted: Bool? = true) {
         self.targetLanguage = targetLanguage
         self.cefrLevel = cefrLevel
+        self.nativeLanguage = nativeLanguage ?? "English"
         self.profileCompleted = profileCompleted
     }
 }

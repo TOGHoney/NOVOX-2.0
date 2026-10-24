@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Onboarding wizard for selecting target language and CEFR proficiency.
-/// Replicates `src/pages/LearningProfile.jsx`.
+/// Native language is fixed to English for all explanations.
 public struct LearningProfileSetupView: View {
     @EnvironmentObject private var authVM: AuthViewModel
     
@@ -15,7 +15,7 @@ public struct LearningProfileSetupView: View {
         NavigationStack {
             VStack(spacing: 20) {
                 
-                // Step Progress Header
+                // Step Progress Header (2 steps)
                 HStack(spacing: 8) {
                     Circle()
                         .fill(currentStep >= 1 ? Constants.Colors.brandBurgundy : Color(.systemGray4))
@@ -34,6 +34,21 @@ public struct LearningProfileSetupView: View {
                 .padding(.horizontal, 40)
                 .padding(.top, 16)
                 
+                // Native Language Fixed Badge
+                HStack(spacing: 6) {
+                    Text("🇺🇸")
+                    Text("Native Language:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("English (Fixed)")
+                        .font(.caption.bold())
+                        .foregroundColor(Constants.Colors.brandBurgundy)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(Constants.Colors.brandBurgundy.opacity(0.08))
+                .clipShape(Capsule())
+                
                 // Visible Error Banner
                 if let error = authVM.errorMessage {
                     HStack(spacing: 8) {
@@ -51,13 +66,13 @@ public struct LearningProfileSetupView: View {
                 }
                 
                 if currentStep == 1 {
-                    // Step 1: Language Selection
+                    // Step 1: Target Language Selection
                     VStack(spacing: 12) {
                         Text("What language do you want to learn?")
                             .font(.title2.bold())
                             .multilineTextAlignment(.center)
                         
-                        Text("All articles and vocabulary intelligence will adapt to this choice.")
+                        Text("All articles, vocabulary, and debate rooms will adapt to this choice.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -103,7 +118,7 @@ public struct LearningProfileSetupView: View {
                             .font(.title2.bold())
                             .multilineTextAlignment(.center)
                         
-                        Text("Choose your CEFR level to calibrate reading difficulty.")
+                        Text("Choose your CEFR level to calibrate reading difficulty and debate expectations.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -161,6 +176,7 @@ public struct LearningProfileSetupView: View {
                                     authVM.errorMessage = "Please choose a CEFR proficiency level."
                                     return
                                 }
+                                // Native language is fixed to English
                                 Task {
                                     _ = await authVM.updateLearningProfile(
                                         targetLanguage: selectedLanguage,

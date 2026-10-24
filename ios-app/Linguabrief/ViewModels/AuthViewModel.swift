@@ -193,6 +193,7 @@ public final class AuthViewModel: ObservableObject {
     
     // MARK: - Profile & Onboarding Completion
     
+    /// Updates user's learning profile. Native language is fixed to English.
     public func updateLearningProfile(targetLanguage: String, cefrLevel: String) async -> Bool {
         isLoading = true
         errorMessage = nil
@@ -200,6 +201,7 @@ public final class AuthViewModel: ObservableObject {
         let payload = ProfileUpdateRequest(
             targetLanguage: targetLanguage,
             cefrLevel: cefrLevel,
+            nativeLanguage: "English",
             profileCompleted: true
         )
         
@@ -212,6 +214,7 @@ public final class AuthViewModel: ObservableObject {
             self.currentUser = finalUser
             self.targetLanguage = targetLanguage
             self.cefrLevel = cefrLevel
+            self.nativeLanguage = "English"
             self.isLoading = false
             return true
         } catch let err as NetworkError {

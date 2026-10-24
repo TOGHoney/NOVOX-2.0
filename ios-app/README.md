@@ -50,7 +50,7 @@ Linguabrief/
 │   ├── Auth/
 │   │   ├── LoginView.swift
 │   │   ├── SignupView.swift
-│   │   └── LearningProfileSetupView.swift # Native language & CEFR level selection
+│   │   └── LearningProfileSetupView.swift # Target language & CEFR level onboarding (Native English fixed)
 │   ├── Feed/
 │   │   ├── FeedView.swift          # News stream with topic tabs & search
 │   │   ├── ArticleCardView.swift   # Native card layout with CEFR badges & bookmarks
@@ -185,7 +185,7 @@ The iOS application avoids hardcoded IP addresses through `AppConfig.swift` and 
 | Feature Area | iOS Implementation | Backend Endpoint / Service Reused |
 |---|---|---|
 | **Authentication** | `LoginView`, `SignupView`, `AuthViewModel`, `KeychainManager` | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/profile` |
-| **Language Onboarding** | `LearningProfileSetupView` (CEFR A1–C2, 5 Target & 6 Native Languages) | `PUT /api/auth/profile` |
+| **Language Onboarding** | `LearningProfileSetupView` (CEFR A1–C2, 5 Target Languages, Fixed English Native) | `PUT /api/auth/profile` |
 | **News Feed** | `FeedView`, `ArticleCardView`, 11 Categories, Pull-to-refresh | `GET /api/news/feed`, `GET /api/news/top-headlines` |
 | **Article Reader** | `ArticleReaderView`, Gemini AI Summary, Full Translation | `POST /api/ai/batch-summarize`, `POST /api/ai/translate` |
 | **Linguistic Analysis** | `InteractiveTextView`, `WordIntelligenceSheet`, POS Tagging | Apple `NaturalLanguage.framework` + `GET https://api.dictionaryapi.dev` |

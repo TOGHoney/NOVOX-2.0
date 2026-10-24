@@ -29,6 +29,8 @@
 	</dict>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Linguabrief requires microphone access to enable speaking practice and participation in live debate rooms.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Linguabrief uses speech recognition to provide real-time AI debate proctoring and personalized speaking feedback.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

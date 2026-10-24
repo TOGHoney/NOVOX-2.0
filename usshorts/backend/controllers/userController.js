@@ -26,7 +26,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
 
-        const { targetLanguage, cefrLevel, profileCompleted } = req.body;
+        const { targetLanguage, cefrLevel, nativeLanguage, profileCompleted } = req.body;
 
         const user = await User.findById(req.user);
 
@@ -43,6 +43,9 @@ exports.updateProfile = async (req, res) => {
         if (cefrLevel) {
             user.cefrLevel = cefrLevel;
         }
+
+        // Native language is permanently fixed to English
+        user.nativeLanguage = "English";
 
         if (profileCompleted !== undefined) {
             user.profileCompleted = profileCompleted;

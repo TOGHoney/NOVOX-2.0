@@ -169,4 +169,17 @@ public struct Endpoint: Sendable {
     public static func leaveDebateRoom(id: String) -> Endpoint {
         Endpoint(path: "/api/debates/\(id)/leave", method: .post, requiresAuth: true)
     }
+
+    // MARK: - Debate Proctor Endpoints
+    public static func proctorTurn() -> Endpoint {
+        Endpoint(path: "/api/debates/proctor/turn", method: .post, requiresAuth: true)
+    }
+
+    public static func proctorSession(roomId: String) -> Endpoint {
+        Endpoint(path: "/api/debates/proctor/session/\(roomId)", method: .get, requiresAuth: true)
+    }
+
+    public static func proctorFinish(roomId: String) -> Endpoint {
+        Endpoint(path: "/api/debates/proctor/finish/\(roomId)", method: .post, requiresAuth: true)
+    }
 }

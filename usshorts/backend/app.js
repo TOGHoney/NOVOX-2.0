@@ -12,7 +12,8 @@ const app = express(); // 1. CREATE THE APP FIRST
 
 app.use(cors());
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 
 
@@ -28,6 +29,7 @@ const commentRoutes = require('./routes/commentRoutes');
 
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
 
+const debateProctorRoutes = require('./routes/debateProctorRoutes');
 const debateRoutes = require('./routes/debateRoutes');
 
 const feedRoutes = require('./routes/feedRoutes');
@@ -47,12 +49,14 @@ app.use('/api/comments', commentRoutes);
 
 app.use('/api/bookmarks', bookmarkRoutes);
 
+app.use('/api/debates/proctor', debateProctorRoutes);
 app.use('/api/debates', debateRoutes);
 
 app.use('/api/translate', translateRoutes);
 app.use('/api/saved-words', wordRoutes);
 app.use('/api/contests', contestRoutes);
 app.use('/api/flashcard-decks', deckRoutes);
+
 
 app.use('/api/feed', feedRoutes);
 
@@ -72,6 +76,14 @@ app.use((req, res) => {
     res.status(404).json({ error: '404 - Resource or API endpoint not found' });
 });
 
-// 5. EXPORT THE APP
+// 5. GLOBAL ERROR HANDLER
+app.use((err, req, res, next) => {
+    console.error('[Express Error]', err.message);
+    if (err.type === 'entity.too.large') {
+        return res.status(413).json({ error: 'Payload too large. Audio file exceeds size limit.' });
+    }
+    res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+});
 
+// 6. EXPORT THE APP
 module.exports = app;

@@ -48,6 +48,16 @@ public struct ProfileView: View {
                 
                 // Language Preferences
                 Section("Language Acquisition Settings") {
+                    HStack {
+                        Text("Native Language")
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Text("🇺🇸")
+                            Text("English (Fixed)")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
                     Picker("Target Language", selection: $authVM.targetLanguage) {
                         ForEach(Constants.targetLanguages) { lang in
                             Text("\(lang.flag) \(lang.name)").tag(lang.name)

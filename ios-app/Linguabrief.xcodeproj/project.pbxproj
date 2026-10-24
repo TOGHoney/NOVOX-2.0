@@ -14,11 +14,13 @@
 		A31D0989AFFE7224D4E7EAAC /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECD4F78DE7DCFC1A325E6F5 /* Bookmark.swift */; };
 		CE569DC37F6DABC29008C891 /* Comment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A02AC72401E807F4DF0909 /* Comment.swift */; };
 		B630D1F970FF406EC68113A7 /* Contest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6542500C7713978A6B90A03C /* Contest.swift */; };
+		4B9DBA4D41BA2D617491FF69 /* DebateProctor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E003DE572CA126EB5FB42F22 /* DebateProctor.swift */; };
 		6E7AE7CA037705B02D501EDE /* DebateRoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FE77113D7EC25196CD056F /* DebateRoom.swift */; };
 		28BC0F4E149BAC1861DD3A8B /* FlashcardDeck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D05FE4434A60B39667255E /* FlashcardDeck.swift */; };
 		36ABD6A66CCEFB9139DA39A6 /* SavedWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91422C4F572C2D38DD9B8EA3 /* SavedWord.swift */; };
 		FFAACF3BAFF55BD86C133DAC /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E82D15289CACFA42C4E3764 /* User.swift */; };
 		FAA9C62342EC306B4F561D75 /* AudioRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA82FD0FB93752C4D8D5890A /* AudioRecordingService.swift */; };
+		9F1E0574070D6F46C68F0D4D /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE61F3C259156D945766A59 /* SpeechRecognitionService.swift */; };
 		0D31CDE3D44CF92B68B9ED58 /* SpeechSynthesisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04E594BA943988FFF001F52 /* SpeechSynthesisService.swift */; };
 		EE424790649E17DACBCA4518 /* DictionaryAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E24FCAD355982AE81EF9B68 /* DictionaryAPIService.swift */; };
 		01B6DFABD46BE0E59ABDA5F4 /* NativeLinguisticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA806DDC652FF8A47C2C39F6 /* NativeLinguisticService.swift */; };
@@ -31,6 +33,7 @@
 		78A91416C37D200ED41FE12E /* ArticleDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDAC48247753D65924B3244F /* ArticleDetailViewModel.swift */; };
 		81BBA5EF5F01DE7DE7E784A0 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6459278203FFEA861003A283 /* AuthViewModel.swift */; };
 		584B4108206079506701544B /* ContestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21CA3D713FF9ACCAE9CF558D /* ContestViewModel.swift */; };
+		4AE7C09DF0D5D72C69E3E98C /* DebateProctorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412C11290BCBB0D069B5823E /* DebateProctorViewModel.swift */; };
 		AD5D981991C9A4C6CB86B377 /* DebatesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B612C6C8CDD94F802BB0C83 /* DebatesViewModel.swift */; };
 		61AD401C98B67AF936BF4B35 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12025DF792E516FF1A46088F /* FeedViewModel.swift */; };
 		725480E3874A9564D38DFAFD /* NewsShortsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF5D470E9EFC9D8D6033E88 /* NewsShortsViewModel.swift */; };
@@ -43,8 +46,11 @@
 		9AD2DFAC65D433D2667B91FC /* ContestListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CA7009154090A726E5D725F /* ContestListView.swift */; };
 		3EEC292A53B8776849A53D58 /* ContestRunnerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E36E523B131C0F35F54D0A /* ContestRunnerView.swift */; };
 		53826780B412C8EF1493C017 /* CreateDebateRoomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7DC3A97505EDF9DF65AD426 /* CreateDebateRoomSheet.swift */; };
+		D8C9114F6BFCF1F3A2EFD0FC /* DebateLiveTranscriptOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0E1BE9CA8D7AA8B501E518 /* DebateLiveTranscriptOverlay.swift */; };
 		E1024DB5903F223ED7E44CA1 /* DebateRoomLiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1465378A2A4699C8AD344BC1 /* DebateRoomLiveView.swift */; };
 		F0B51537F28D8C02F7004ABF /* DebateRoomsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54E4452E4C1262CCD6FE1E4 /* DebateRoomsListView.swift */; };
+		7750EC594C9CB606FDBE90A0 /* DebateScorecardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8928EF4520C9CECFBE91F2 /* DebateScorecardView.swift */; };
+		C3935DCDD497A7668F17289F /* DebateTurnFeedbackSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8074EC5540783CA4CD2223 /* DebateTurnFeedbackSheet.swift */; };
 		9F91ACD5D7884791F501D3E9 /* ArticleCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF31218DC7AC045748340910 /* ArticleCardView.swift */; };
 		768C11B49A61365CF3A5B305 /* ArticleReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D038E4DB74EA0683EEBEAA61 /* ArticleReaderView.swift */; };
 		BD721165F4EE740AF6D5B600 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF3680898B5669F8BDBA7400 /* FeedView.swift */; };
@@ -71,11 +77,13 @@
 		DECD4F78DE7DCFC1A325E6F5 /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bookmark.swift"; sourceTree = "<group>"; };
 		31A02AC72401E807F4DF0909 /* Comment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Comment.swift"; sourceTree = "<group>"; };
 		6542500C7713978A6B90A03C /* Contest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Contest.swift"; sourceTree = "<group>"; };
+		E003DE572CA126EB5FB42F22 /* DebateProctor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebateProctor.swift"; sourceTree = "<group>"; };
 		D9FE77113D7EC25196CD056F /* DebateRoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebateRoom.swift"; sourceTree = "<group>"; };
 		87D05FE4434A60B39667255E /* FlashcardDeck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FlashcardDeck.swift"; sourceTree = "<group>"; };
 		91422C4F572C2D38DD9B8EA3 /* SavedWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SavedWord.swift"; sourceTree = "<group>"; };
 		8E82D15289CACFA42C4E3764 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "User.swift"; sourceTree = "<group>"; };
 		AA82FD0FB93752C4D8D5890A /* AudioRecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AudioRecordingService.swift"; sourceTree = "<group>"; };
+		2AE61F3C259156D945766A59 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpeechRecognitionService.swift"; sourceTree = "<group>"; };
 		F04E594BA943988FFF001F52 /* SpeechSynthesisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpeechSynthesisService.swift"; sourceTree = "<group>"; };
 		4E24FCAD355982AE81EF9B68 /* DictionaryAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DictionaryAPIService.swift"; sourceTree = "<group>"; };
 		FA806DDC652FF8A47C2C39F6 /* NativeLinguisticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NativeLinguisticService.swift"; sourceTree = "<group>"; };
@@ -88,6 +96,7 @@
 		EDAC48247753D65924B3244F /* ArticleDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArticleDetailViewModel.swift"; sourceTree = "<group>"; };
 		6459278203FFEA861003A283 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthViewModel.swift"; sourceTree = "<group>"; };
 		21CA3D713FF9ACCAE9CF558D /* ContestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContestViewModel.swift"; sourceTree = "<group>"; };
+		412C11290BCBB0D069B5823E /* DebateProctorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebateProctorViewModel.swift"; sourceTree = "<group>"; };
 		1B612C6C8CDD94F802BB0C83 /* DebatesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebatesViewModel.swift"; sourceTree = "<group>"; };
 		12025DF792E516FF1A46088F /* FeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedViewModel.swift"; sourceTree = "<group>"; };
 		DBF5D470E9EFC9D8D6033E88 /* NewsShortsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsShortsViewModel.swift"; sourceTree = "<group>"; };
@@ -100,8 +109,11 @@
 		6CA7009154090A726E5D725F /* ContestListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContestListView.swift"; sourceTree = "<group>"; };
 		21E36E523B131C0F35F54D0A /* ContestRunnerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContestRunnerView.swift"; sourceTree = "<group>"; };
 		C7DC3A97505EDF9DF65AD426 /* CreateDebateRoomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CreateDebateRoomSheet.swift"; sourceTree = "<group>"; };
+		5B0E1BE9CA8D7AA8B501E518 /* DebateLiveTranscriptOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebateLiveTranscriptOverlay.swift"; sourceTree = "<group>"; };
 		1465378A2A4699C8AD344BC1 /* DebateRoomLiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebateRoomLiveView.swift"; sourceTree = "<group>"; };
 		E54E4452E4C1262CCD6FE1E4 /* DebateRoomsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebateRoomsListView.swift"; sourceTree = "<group>"; };
+		CC8928EF4520C9CECFBE91F2 /* DebateScorecardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebateScorecardView.swift"; sourceTree = "<group>"; };
+		DF8074EC5540783CA4CD2223 /* DebateTurnFeedbackSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DebateTurnFeedbackSheet.swift"; sourceTree = "<group>"; };
 		EF31218DC7AC045748340910 /* ArticleCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArticleCardView.swift"; sourceTree = "<group>"; };
 		D038E4DB74EA0683EEBEAA61 /* ArticleReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArticleReaderView.swift"; sourceTree = "<group>"; };
 		AF3680898B5669F8BDBA7400 /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedView.swift"; sourceTree = "<group>"; };
@@ -178,6 +190,7 @@
 				DECD4F78DE7DCFC1A325E6F5 /* Bookmark.swift */,
 				31A02AC72401E807F4DF0909 /* Comment.swift */,
 				6542500C7713978A6B90A03C /* Contest.swift */,
+				E003DE572CA126EB5FB42F22 /* DebateProctor.swift */,
 				D9FE77113D7EC25196CD056F /* DebateRoom.swift */,
 				87D05FE4434A60B39667255E /* FlashcardDeck.swift */,
 				91422C4F572C2D38DD9B8EA3 /* SavedWord.swift */,
@@ -212,6 +225,7 @@
 				EDAC48247753D65924B3244F /* ArticleDetailViewModel.swift */,
 				6459278203FFEA861003A283 /* AuthViewModel.swift */,
 				21CA3D713FF9ACCAE9CF558D /* ContestViewModel.swift */,
+				412C11290BCBB0D069B5823E /* DebateProctorViewModel.swift */,
 				1B612C6C8CDD94F802BB0C83 /* DebatesViewModel.swift */,
 				12025DF792E516FF1A46088F /* FeedViewModel.swift */,
 				DBF5D470E9EFC9D8D6033E88 /* NewsShortsViewModel.swift */,
@@ -260,8 +274,11 @@
 			isa = PBXGroup;
 			children = (
 				C7DC3A97505EDF9DF65AD426 /* CreateDebateRoomSheet.swift */,
+				5B0E1BE9CA8D7AA8B501E518 /* DebateLiveTranscriptOverlay.swift */,
 				1465378A2A4699C8AD344BC1 /* DebateRoomLiveView.swift */,
 				E54E4452E4C1262CCD6FE1E4 /* DebateRoomsListView.swift */,
+				CC8928EF4520C9CECFBE91F2 /* DebateScorecardView.swift */,
+				DF8074EC5540783CA4CD2223 /* DebateTurnFeedbackSheet.swift */,
 			);
 			path = "Debates";
 			sourceTree = "<group>";
@@ -320,6 +337,7 @@
 			isa = PBXGroup;
 			children = (
 				AA82FD0FB93752C4D8D5890A /* AudioRecordingService.swift */,
+				2AE61F3C259156D945766A59 /* SpeechRecognitionService.swift */,
 				F04E594BA943988FFF001F52 /* SpeechSynthesisService.swift */,
 			);
 			path = "Audio";
@@ -427,11 +445,13 @@
 				A31D0989AFFE7224D4E7EAAC /* Bookmark.swift in Sources */,
 				CE569DC37F6DABC29008C891 /* Comment.swift in Sources */,
 				B630D1F970FF406EC68113A7 /* Contest.swift in Sources */,
+				4B9DBA4D41BA2D617491FF69 /* DebateProctor.swift in Sources */,
 				6E7AE7CA037705B02D501EDE /* DebateRoom.swift in Sources */,
 				28BC0F4E149BAC1861DD3A8B /* FlashcardDeck.swift in Sources */,
 				36ABD6A66CCEFB9139DA39A6 /* SavedWord.swift in Sources */,
 				FFAACF3BAFF55BD86C133DAC /* User.swift in Sources */,
 				FAA9C62342EC306B4F561D75 /* AudioRecordingService.swift in Sources */,
+				9F1E0574070D6F46C68F0D4D /* SpeechRecognitionService.swift in Sources */,
 				0D31CDE3D44CF92B68B9ED58 /* SpeechSynthesisService.swift in Sources */,
 				EE424790649E17DACBCA4518 /* DictionaryAPIService.swift in Sources */,
 				01B6DFABD46BE0E59ABDA5F4 /* NativeLinguisticService.swift in Sources */,
@@ -444,6 +464,7 @@
 				78A91416C37D200ED41FE12E /* ArticleDetailViewModel.swift in Sources */,
 				81BBA5EF5F01DE7DE7E784A0 /* AuthViewModel.swift in Sources */,
 				584B4108206079506701544B /* ContestViewModel.swift in Sources */,
+				4AE7C09DF0D5D72C69E3E98C /* DebateProctorViewModel.swift in Sources */,
 				AD5D981991C9A4C6CB86B377 /* DebatesViewModel.swift in Sources */,
 				61AD401C98B67AF936BF4B35 /* FeedViewModel.swift in Sources */,
 				725480E3874A9564D38DFAFD /* NewsShortsViewModel.swift in Sources */,
@@ -456,8 +477,11 @@
 				9AD2DFAC65D433D2667B91FC /* ContestListView.swift in Sources */,
 				3EEC292A53B8776849A53D58 /* ContestRunnerView.swift in Sources */,
 				53826780B412C8EF1493C017 /* CreateDebateRoomSheet.swift in Sources */,
+				D8C9114F6BFCF1F3A2EFD0FC /* DebateLiveTranscriptOverlay.swift in Sources */,
 				E1024DB5903F223ED7E44CA1 /* DebateRoomLiveView.swift in Sources */,
 				F0B51537F28D8C02F7004ABF /* DebateRoomsListView.swift in Sources */,
+				7750EC594C9CB606FDBE90A0 /* DebateScorecardView.swift in Sources */,
+				C3935DCDD497A7668F17289F /* DebateTurnFeedbackSheet.swift in Sources */,
 				9F91ACD5D7884791F501D3E9 /* ArticleCardView.swift in Sources */,
 				768C11B49A61365CF3A5B305 /* ArticleReaderView.swift in Sources */,
 				BD721165F4EE740AF6D5B600 /* FeedView.swift in Sources */,
